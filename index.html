@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>커리큘럼 개요 · 15주 완성 파이썬 자료구조와 알고리즘</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF1F6;
+    --surface:#FFFFFF;
+    --surface-2:#F5F7FB;
+    --ink:#14181F;
+    --ink-soft:#4A5468;
+    --ink-faint:#7C8698;
+    --line:#D8DEE9;
+    --ref:#0F7A73;
+    --ref-soft:#E2F3F1;
+    --mutable:#B5502E;
+    --mutable-soft:#F8E9E2;
+    --immutable:#2F4B7C;
+    --immutable-soft:#E8EDF6;
+    --gold:#C9962B;
+    --gold-soft:#FBF1DE;
+    --radius:16px;
+    --serif:'Fraunces', serif;
+    --sans:'Inter', sans-serif;
+    --mono:'JetBrains Mono', monospace;
+    --shadow: 0 1px 2px rgba(20,24,31,0.04), 0 8px 24px -12px rgba(20,24,31,0.12);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background-color:#F7F9FC;
+    background-image:
+      linear-gradient(rgba(47,75,124,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(47,75,124,0.045) 1px, transparent 1px);
+    background-size:42px 42px;
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--gold-soft); color:var(--ink); }
+  h1,h2,h3{ font-family:var(--serif); margin:0 0 .4em; color:var(--ink); font-weight:600; }
+  code{ font-family:var(--mono); background:var(--surface-2); border:1px solid var(--line); border-radius:4px; padding:.1em .35em; font-size:.92em; font-variant-ligatures:none; -webkit-font-feature-settings:"liga" 0; font-feature-settings:"liga" 0; }
+  a{ color:var(--immutable); }
+
+  .container{ max-width:980px; margin:0 auto; padding:0 24px; }
+
+  header{
+    padding:72px 24px 44px;
+    max-width:980px; margin:0 auto;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    display:inline-block; font-family:var(--mono); font-size:12.5px; letter-spacing:.08em;
+    color:var(--ink-faint); text-transform:uppercase; margin-bottom:18px;
+  }
+  header h1{ font-size:clamp(2rem, 4.6vw, 3rem); max-width:22ch; }
+  header .lede{ color:var(--ink-soft); font-size:16px; max-width:66ch; margin-top:14px; }
+  header .meta-row{ display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
+  header .meta-pill{
+    font-family:var(--mono); font-size:12px; color:var(--ink-soft); background:var(--surface);
+    border:1px solid var(--line); border-radius:20px; padding:6px 13px;
+  }
+
+  nav.toc{
+    max-width:980px; margin:24px auto 0; padding:0 24px;
+    display:flex; flex-wrap:wrap; gap:8px 10px;
+  }
+  nav.toc a{
+    font-family:var(--mono); font-size:12.5px; text-decoration:none;
+    color:var(--ink-soft); background:var(--surface); border:1px solid var(--line);
+    padding:6px 11px; border-radius:20px; transition:.15s;
+  }
+  nav.toc a:hover{ border-color:var(--immutable); color:var(--immutable); }
+
+  section{ max-width:980px; margin:0 auto; padding:44px 24px; }
+
+  .section-head{ margin-bottom:20px; }
+  .section-kicker{
+    display:block; font-family:var(--mono); font-size:12px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px;
+  }
+  .section-head .part-range{ font-family:var(--mono); font-size:13px; color:var(--ink-faint); margin-top:6px; }
+
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:26px 28px; box-shadow:var(--shadow);
+  }
+
+  .grid-3{ display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+  @media (max-width:760px){ .grid-3{ grid-template-columns:1fr; } }
+  .kv-card{ padding:22px 22px 24px; }
+  .tag{
+    display:inline-block; font-family:var(--mono); font-size:11.5px; letter-spacing:.06em;
+    text-transform:uppercase; padding:4px 10px; border-radius:20px; margin-bottom:12px;
+  }
+  .tag.idea{ background:var(--ref-soft); color:var(--ref); }
+  .tag.goal{ background:var(--gold-soft); color:var(--gold); }
+  .tag.crit{ background:var(--immutable-soft); color:var(--immutable); }
+  .tag.exam{ background:var(--mutable-soft); color:var(--mutable); }
+  .kv-card p, .kv-card ul{ font-size:14.5px; color:var(--ink); margin:0; }
+  .kv-card ul{ padding-left:18px; }
+  .kv-card li{ margin-bottom:4px; }
+
+  table.compare-table{ width:100%; border-collapse:collapse; margin:0; font-size:13.8px; }
+  table.compare-table th, table.compare-table td{ border:1px solid var(--line); padding:10px 14px; text-align:left; vertical-align:top; }
+  table.compare-table th{ background:var(--surface-2); font-family:var(--mono); font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); }
+  table.compare-table td.wk{ font-family:var(--mono); font-weight:600; color:var(--immutable); white-space:nowrap; }
+  table.compare-table tr.exam-row td{ background:var(--mutable-soft); }
+  table.compare-table tr.exam-row td.wk{ color:var(--mutable); }
+
+  .part-divider{
+    display:flex; align-items:center; gap:14px; margin:0 0 28px;
+  }
+  .part-divider .num{
+    font-family:var(--serif); font-size:34px; color:var(--immutable); flex-shrink:0;
+  }
+  .part-divider .txt h2{ font-size:22px; margin-bottom:.15em; }
+  .part-divider .txt p{ margin:0; color:var(--ink-soft); font-size:14px; }
+
+  .week-card{ margin-bottom:18px; }
+  .week-card:last-child{ margin-bottom:0; }
+  .week-head{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .week-num{
+    font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.03em;
+    background:var(--immutable); color:#fff; padding:5px 11px; border-radius:7px; flex-shrink:0;
+  }
+  .week-num.exam{ background:var(--mutable); }
+  .week-head h3{ font-size:19px; margin:0; flex:1; min-width:200px; }
+  .exam-badge{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.05em; text-transform:uppercase;
+    background:var(--mutable-soft); color:var(--mutable); padding:4px 10px; border-radius:20px;
+  }
+
+  .qbox{
+    border-left:3px solid var(--immutable);
+    background:var(--immutable-soft);
+    padding:14px 18px; border-radius:0 10px 10px 0;
+    font-family:var(--serif); font-style:italic; font-size:15.5px; color:var(--ink);
+    margin:0 0 16px;
+  }
+
+  .meta-list{ display:flex; flex-direction:column; gap:9px; margin-bottom:16px; }
+  .meta-list .row{ display:flex; gap:12px; font-size:14px; align-items:baseline; }
+  .meta-list .label{
+    flex-shrink:0; width:78px; font-family:var(--mono); font-size:10.5px; letter-spacing:.04em;
+    text-transform:uppercase; padding-top:2px;
+  }
+  .meta-list .label.idea{ color:var(--ref); }
+  .meta-list .label.goal{ color:var(--gold); }
+  .meta-list .label.crit{ color:var(--immutable); }
+  .meta-list .val{ color:var(--ink); }
+
+  .class-content{
+    display:grid; grid-template-columns:88px 1fr; gap:8px 14px; font-size:13.6px;
+    color:var(--ink-soft); padding-top:14px; border-top:1px dashed var(--line);
+  }
+  .class-content .ct-label{
+    font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--ink-faint); padding-top:1px;
+  }
+
+  footer{ text-align:center; padding:48px 24px 64px; color:var(--ink-faint); font-size:13.5px; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; scroll-behavior:auto !important; } }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="eyebrow">Course Overview · Weeks 01–15</span>
+  <h1>15주 완성 파이썬 자료구조 및 알고리즘(DSA) 실전 커리큘럼</h1>
+  <p class="lede">파이썬의 객체 지향적 특성과 내장 라이브러리를 활용하여, 자료구조의 근본 원리부터 실전 코딩 테스트 수준의 알고리즘 문제 해결 능력까지 15주 만에 완성하는 실무 지향 커리큘럼입니다.</p>
+  <div class="meta-row">
+    <span class="meta-pill">주 1회 · 3시간 (이론 1h + 실습 2h)</span>
+    <span class="meta-pill">중간고사 30% · 기말고사 30% · 실습 과제 20% · 알고리즘 문제 해결 20%</span>
+    <span class="meta-pill">7주차 중간고사 · 14주차 수행평가 · 15주차 기말고사</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#overview">운영 개요</a>
+  <a href="#glance">한눈에 보기</a>
+  <a href="#part1">제1부 · 1~5주차</a>
+  <a href="#part2">제2부 · 6~10주차</a>
+  <a href="#part3">제3부 · 11~15주차</a>
+</nav>
+
+<section id="overview" aria-labelledby="overview-h">
+  <div class="section-head">
+    <span class="section-kicker">수업 운영</span>
+    <h2 id="overview-h">운영 개요</h2>
+  </div>
+  <div class="grid-3">
+    <div class="card kv-card idea">
+      <span class="tag idea">수업 개요</span>
+      <p>파이썬의 객체 지향적 특성과 내장 라이브러리를 활용해, 자료구조의 근본 원리부터 실전 코딩 테스트 수준의 문제 해결 능력까지 15주 만에 완성합니다.</p>
+    </div>
+    <div class="card kv-card goal">
+      <span class="tag goal">운영 방식</span>
+      <p>주 1회 3시간 진행 — <b>이론 1시간</b> + <b>코딩 실습 2시간</b>의 조합으로 매주 개념과 구현을 함께 다룹니다.</p>
+    </div>
+    <div class="card kv-card crit">
+      <span class="tag crit">평가 방식</span>
+      <ul>
+        <li>중간고사 30% (7주차)</li>
+        <li>기말고사 30% (15주차)</li>
+        <li>매주 실습 과제 20%</li>
+        <li>알고리즘 문제 해결 20% (14주차 수행평가)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="glance" aria-labelledby="glance-h">
+  <div class="section-head">
+    <span class="section-kicker">로드맵</span>
+    <h2 id="glance-h">15주 한눈에 보기</h2>
+  </div>
+  <div class="card" style="padding:0; overflow-x:auto;">
+    <table class="compare-table">
+      <tr><th style="width:60px;">주차</th><th style="width:70px;">파트</th><th>주제</th><th>핵심 키워드</th></tr>
+      <tr><td class="wk">01</td><td>제1부</td><td>오리엔테이션 및 파이썬 객체 메모리 모델</td><td>참조(Reference), 가변/불변, 얕은복사·깊은복사</td></tr>
+      <tr><td class="wk">02</td><td>제1부</td><td>알고리즘 복잡도 분석과 동적 배열(Array)</td><td>Big-O/Ω/Θ, append·insert 복잡도, 투 포인터</td></tr>
+      <tr><td class="wk">03</td><td>제1부</td><td>연결 리스트(Linked List) 기초</td><td>Node, __slots__, 더미 노드</td></tr>
+      <tr><td class="wk">04</td><td>제1부</td><td>연결 리스트 심화 및 제어</td><td>리스트 뒤집기, 토끼와 거북이(Fast&amp;Slow), 사이클 탐지</td></tr>
+      <tr><td class="wk">05</td><td>제1부</td><td>스택(Stack)과 큐(Queue)</td><td>LIFO/FIFO, 괄호 짝 맞춤, collections.deque</td></tr>
+      <tr><td class="wk">06</td><td>제2부</td><td>해시 테이블(Hash Table)</td><td>해시 충돌, dict·Counter·defaultdict</td></tr>
+      <tr class="exam-row"><td class="wk">07</td><td>제2부</td><td>중간고사 및 코드 리뷰</td><td>선형 구조 + 해시 테이블 종합 평가, PEP 8</td></tr>
+      <tr><td class="wk">08</td><td>제2부</td><td>트리(Tree)와 이진 탐색 트리(BST)</td><td>전/중/후위 순회, 가변 기본 인자 버그</td></tr>
+      <tr><td class="wk">09</td><td>제2부</td><td>힙(Heap)과 우선순위 큐(Priority Queue)</td><td>heapq, K번째 최댓값, 다익스트라 기초</td></tr>
+      <tr><td class="wk">10</td><td>제2부</td><td>그래프(Graph) 구조 모델링</td><td>인접 행렬·인접 리스트, defaultdict(list), 제네레이터</td></tr>
+      <tr><td class="wk">11</td><td>제3부</td><td>그래프 순회 탐색(BFS &amp; DFS)</td><td>상태 공간 탐색, 미로 탐색, 섬의 개수</td></tr>
+      <tr><td class="wk">12</td><td>제3부</td><td>정렬과 이진 탐색(Sorting &amp; Binary Search)</td><td>병합·퀵 정렬, bisect_left/right</td></tr>
+      <tr><td class="wk">13</td><td>제3부</td><td>동적 계획법(DP)과 탐욕 알고리즘(Greedy)</td><td>메모이제이션, 타뷸레이션, 그리디 반례</td></tr>
+      <tr class="exam-row"><td class="wk">14</td><td>제3부</td><td>(수행평가) 알고리즘 문제 해결</td><td>가지치기(Pruning), 타입 힌팅(typing)</td></tr>
+      <tr class="exam-row"><td class="wk">15</td><td>제3부</td><td>기말평가</td><td>전 범위 코딩 테스트, 최종 리뷰, 로드맵 제공</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="part1" aria-labelledby="part1-h">
+  <div class="part-divider">
+    <span class="num">01</span>
+    <div class="txt">
+      <h2 id="part1-h">파이썬 객체 모델과 선형 자료구조</h2>
+      <p>1주차 ~ 5주차</p>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num">Week 01</span>
+      <h3>오리엔테이션 및 파이썬 객체 메모리 모델</h3>
+    </div>
+    <div class="qbox">변수에 값을 할당하고 복사할 때 컴퓨터 메모리 내부에서는 실제로 어떤 일이 일어날까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">파이썬의 모든 데이터는 객체이며, 변수는 데이터를 담는 상자가 아닌 '참조(Reference)'다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">파이썬의 객체 참조 모델과 가변/불변 객체의 차이를 시각적으로 이해한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">얕은 복사와 깊은 복사를 코드로 명확히 구분하여 구현하고, 파이썬 튜터를 활용해 메모리 할당 구조를 설명할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>데이터 모델(가변 vs 불변), 네임스페이스, 객체 복사 메커니즘</span>
+      <span class="ct-label">실습 (2h)</span><span>파이썬 튜터(Python Tutor) 메모리 시각화 실습, @dataclass 및 매직 메서드 기초 구현</span>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num">Week 02</span>
+      <h3>알고리즘 복잡도 분석과 동적 배열(Array)</h3>
+    </div>
+    <div class="qbox">내가 작성한 코드는 얼마나 빠르며, 메모리를 얼마나 차지할지 수학적으로 증명할 수 있을까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">알고리즘의 효율성은 입력 크기에 따른 자원 소모량의 증가율(Big-O)로 객관적 평가가 가능하다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">점근적 표기법을 이해하고, 파이썬 리스트(동적 배열)의 성능 한계를 분석한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">리스트의 주요 연산(append, insert)의 시간 복잡도를 O(1)과 O(N)으로 산출하고, 투 포인터 기법을 배열에 적용할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>점근적 표기법(Big-O, Big-Ω, Big-Θ), 메모리의 물리적 연속성('고정된 도서관 책장' 은유)</span>
+      <span class="ct-label">실습 (2h)</span><span>list 연산별 성능 벤치마크 테스트, 투 포인터(Two-Pointers) 기반 배열 최적화</span>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num">Week 03</span>
+      <h3>연결 리스트(Linked List) 기초</h3>
+    </div>
+    <div class="qbox">배열처럼 연속된 메모리 공간이 부족할 때, 흩어진 데이터를 어떻게 하나의 기차처럼 이어 붙일 수 있을까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">물리적인 메모리의 연속성을 포기하면 데이터의 삽입과 삭제 속도를 극대화할 수 있다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">포인터를 이용한 단일 연결 리스트의 논리적 구조를 이해하고 객체 지향 문법으로 밑바닥부터 구현한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">__slots__를 활용한 메모리 최적화 기법과 더미 노드(Dummy Node)를 적용해 결함 없는 연결 리스트 클래스를 설계할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>단일 연결 리스트의 원리('객차가 연결된 기차' 은유), O(1) 삽입 성능의 조건</span>
+      <span class="ct-label">실습 (2h)</span><span>Node 클래스 정의(__slots__ 적용), 더미 노드 기반 Edge Case(빈 리스트) 방어 프로그래밍</span>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num">Week 04</span>
+      <h3>연결 리스트 심화 및 제어</h3>
+    </div>
+    <div class="qbox">앞으로만 갈 수 있는 연결 리스트에서 데이터를 역순으로 뒤집거나 순환(사이클)을 어떻게 감지할까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">다중 포인터의 논리적 조작을 통해 선형 자료구조의 탐색 한계와 제약을 우회할 수 있다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">다중 포인터 조작 능력과 토끼와 거북이(Fast &amp; Slow Pointers) 알고리즘을 체득한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">추가적인 메모리 할당 없이 단일 연결 리스트를 O(N) 시간에 뒤집고, 사이클 존재 여부를 검증할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>이중/원형 연결 리스트, 순차 탐색의 포인터 누수 및 Null Pointer 버그 분석</span>
+      <span class="ct-label">실습 (2h)</span><span>연결 리스트 뒤집기(Reverse) 구현, 토끼와 거북이 알고리즘 기반 사이클 탐지</span>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num">Week 05</span>
+      <h3>스택(Stack)과 큐(Queue)</h3>
+    </div>
+    <div class="qbox">가장 나중에 들어온 데이터와 가장 먼저 들어온 데이터를 어떻게 가장 효율적으로 처리할까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">데이터의 삽입과 삭제 '순서'를 제어하면 특정 패턴의 문제(히스토리, 대기열)를 우아하게 해결할 수 있다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">LIFO/FIFO 원리를 이해하고 파이썬 환경에 최적화된 내장 모듈의 동작 원리를 파악한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">스택을 활용하여 상태 추적 문제를 해결하고, collections.deque 모듈로 양방향 O(1) 큐를 구현할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>LIFO('접시 더미')와 FIFO('매표소 대기열')의 이해, 리스트 기반 큐의 O(N) 성능 저하 원인</span>
+      <span class="ct-label">실습 (2h)</span><span>괄호 짝 맞춤(Valid Parentheses), collections.deque를 활용한 프로세스 스케줄링 모의 구현</span>
+    </div>
+  </div>
+</section>
+
+<section id="part2" aria-labelledby="part2-h">
+  <div class="part-divider">
+    <span class="num">02</span>
+    <div class="txt">
+      <h2 id="part2-h">탐색 효율의 극대화: 비선형 자료구조</h2>
+      <p>6주차 ~ 10주차</p>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num">Week 06</span>
+      <h3>해시 테이블(Hash Table)</h3>
+    </div>
+    <div class="qbox">수백만 개의 데이터 중 원하는 값을 어떻게 단 한 번의 탐색(O(1))으로 찾아낼 수 있을까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">수학적 해시 함수를 통해 데이터의 논리적 키를 물리적 메모리 주소로 직접 매핑하여 탐색 시간을 없앤다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">해시 테이블의 원리와 해시 충돌(Collision) 해결 기법을 이해하고 dict를 안전하게 활용한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">불변 객체(Tuple)를 식별자로 사용하여 unhashable type 에러를 피하고, 데이터 빈도수를 집계하는 최적의 코드를 작성할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>고속 조회 원리('마법의 우편 분류기' 은유), 체이닝/개방 주소법 등 충돌 완화 메커니즘</span>
+      <span class="ct-label">실습 (2h)</span><span>dict, Counter, defaultdict를 결합한 고속 빈도수 역추적 알고리즘 작성</span>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num exam">Week 07</span>
+      <h3>중간고사 및 코드 리뷰</h3>
+      <span class="exam-badge">평가</span>
+    </div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">선형 구조와 해시 모델을 결합한 통합적 사고 능력을 검증한다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">전반기 학습 내용을 지필 및 실기(코딩)로 입증하고, 객관적인 코드 퀄리티(PEP 8)를 점검받는다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">제한 시간 내에 요구사항과 시간 복잡도를 충족하는 결함 없는 파이썬 코드를 작성할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론/평가 (1.5h)</span><span>선형 구조 및 해시 테이블 범위 지필/서술형 평가</span>
+      <span class="ct-label">실습/리뷰 (1.5h)</span><span>기출문제 해설 및 수강생 1:1 코드 리뷰(PEP 8 컨벤션 및 네이밍 규칙 점검)</span>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num">Week 08</span>
+      <h3>트리(Tree)와 이진 탐색 트리(BST)</h3>
+    </div>
+    <div class="qbox">데이터가 1차원이 아닌 족보나 조직도처럼 뻗어나갈 때, 어떻게 저장하고 가장 빨리 탐색할까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">계층형 데이터를 표현하고 분할 정복(Divide &amp; Conquer)을 통해 탐색 공간을 매번 절반씩 줄여나간다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">트리의 재귀적 속성을 이해하고 이진 탐색 트리의 구조와 순회 알고리즘을 구현한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">전/중/후위 순회를 재귀 함수로 구현하며, 파이썬의 '가변 기본 인자(visited=[])' 안티 패턴 버그를 식별하고 수정할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>트리의 계층적 모델링('인류의 가계도'), BST 기반 O(log N) 분할 정복</span>
+      <span class="ct-label">실습 (2h)</span><span>재귀 함수 기반 트리 순회 구현, 가변 기본 인자 버그 방지를 위한 스코프(Scope) 제어 훈련</span>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num">Week 09</span>
+      <h3>힙(Heap)과 우선순위 큐(Priority Queue)</h3>
+    </div>
+    <div class="qbox">들어온 순서와 무관하게, 우선순위가 가장 높은 데이터를 즉시(O(1)) 뽑아내려면 어떻게 해야 할까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">완전 이진 트리를 1차원 배열에 매핑하여, 항상 최댓값과 최솟값을 최상단에 유지시킨다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">힙(Heap)의 특성을 이해하고 파이썬 heapq 모듈을 실전 문제 풀이에 능숙하게 적용한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">heapq를 이용하여 O(N log K) 복잡도 내에 K번째 최댓값을 추출하고 다익스트라 알고리즘의 기초를 다질 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>배열 매핑 완전 이진 트리 원리, 삽입/삭제를 위한 Heapify 메커니즘</span>
+      <span class="ct-label">실습 (2h)</span><span>heapq 모듈 실무 적용, 부호 반전(-value)을 통한 최대 힙(Max-Heap) 우회 구현 테크닉</span>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num">Week 10</span>
+      <h3>그래프(Graph) 구조 모델링</h3>
+    </div>
+    <div class="qbox">친구 관계, 웹페이지 링크, 지하철 노선도처럼 복잡하게 얽힌 망형 구조를 어떻게 컴퓨터 메모리에 올릴까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">노드 간의 복잡한 다대다 관계를 행렬(Matrix)이나 연결 리스트(List) 구조로 추상화한다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">그래프의 인접 행렬과 인접 리스트 표현법을 비교하고 파이썬 내장 도구로 우아하게 구축한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">defaultdict(list)를 활용해 간결하게 그래프를 모델링하고, 제네레이터(yield) 이터레이터로 노드를 순회할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>다대다 망형 네트워크('소셜 네트워크' 은유), 인접 행렬 vs 인접 리스트 효율성 비교</span>
+      <span class="ct-label">실습 (2h)</span><span>defaultdict를 이용한 예외 없는 그래프 초기화, 제네레이터(yield)를 통한 인접 노드 반환</span>
+    </div>
+  </div>
+</section>
+
+<section id="part3" aria-labelledby="part3-h">
+  <div class="part-divider">
+    <span class="num">03</span>
+    <div class="txt">
+      <h2 id="part3-h">고급 알고리즘 패러다임 및 실전 코딩 테스트</h2>
+      <p>11주차 ~ 15주차</p>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num">Week 11</span>
+      <h3>그래프 순회 탐색(BFS &amp; DFS)</h3>
+    </div>
+    <div class="qbox">미로에서 출구를 찾거나 특정 구역이 얼마나 연결되어 있는지 확인할 때, 어떤 순서로 탐색하는 것이 정답일까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">스택과 큐를 탐색 규칙으로 활용하여, 거대한 상태 공간(State Space)을 빠짐없이 체계적으로 훑는다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">깊이 우선 탐색(DFS)과 너비 우선 탐색(BFS)의 차이를 이해하고 2차원 공간 탐색 문제에 적용한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">조건에 따라 BFS(최단 거리 보장)와 DFS(연결 요소 추적)를 구별하여 의사코드(Pseudo-code) 작성 후 파이썬으로 구현할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>상태 공간 탐색 기법, Call Stack을 이용한 DFS vs 큐 기반 BFS</span>
+      <span class="ct-label">실습 (2h)</span><span>2차원 Grid 상의 '미로 탐색' 및 '섬의 개수' 구하기 실전 문제 풀이</span>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num">Week 12</span>
+      <h3>정렬과 이진 탐색(Sorting &amp; Binary Search)</h3>
+    </div>
+    <div class="qbox">10억 개의 정렬된 데이터 속에서 내가 원하는 특정 값이나 구간을 어떻게 단번에(O(log N)) 찾아낼까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">데이터가 '정렬되어 있다는 사실'은 이진 탐색을 통해 엄청난 속도 향상을 이룰 수 있는 강력한 무기다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">주요 정렬 알고리즘의 복잡도를 비교하고, bisect 모듈을 활용한 고속 이분 탐색을 마스터한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">파이썬 내장 모듈 bisect를 활용하여 Lower/Upper Bound 개념을 적용해 데이터 빈도를 고속으로 산출할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>기초 정렬(O(N²))과 병합/퀵 정렬(O(N log N)), 이진 탐색의 성립 조건</span>
+      <span class="ct-label">실습 (2h)</span><span>bisect_left/bisect_right를 활용한 고속 삽입점 탐색 및 구간 내 요소 개수 카운팅</span>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num">Week 13</span>
+      <h3>동적 계획법(DP)과 탐욕 알고리즘(Greedy)</h3>
+    </div>
+    <div class="qbox">같은 연산을 수만 번 반복하지 않고 과거의 계산 결과를 기억해두면(메모이제이션) 성능이 얼마나 비약적으로 오를까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">하위 문제의 중복 연산은 메모리(캐시)로 교환하여 속도를 높이고, 최적 부분 구조일 경우 탐욕적 선택을 한다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">동적 계획법의 상태 정의 및 전이 방정식을 수립하고, 탐욕 알고리즘의 한계를 식별한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">DP 테이블(Tabulation)을 이용해 계단 오르기/피보나치 문제를 해결하고, 코인 교환 문제에서 Greedy와 DP의 차이를 증명할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>메모이제이션(Memoization)과 타뷸레이션(Tabulation), 매 순간 최선의 선택을 하는 탐욕(Greedy) 구조</span>
+      <span class="ct-label">실습 (2h)</span><span>1차원/2차원 DP 배열 설계 훈련, 거스름돈 예제를 통한 Greedy 반례 도출</span>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num exam">Week 14</span>
+      <h3>(수행평가) 알고리즘 문제 해결</h3>
+      <span class="exam-badge">수행평가</span>
+    </div>
+    <div class="qbox">모든 경우의 수를 확인해야 하지만 시간 초과(TLE)가 예상될 때, 어떻게 불필요한 경우의 수를 지능적으로 포기할까?</div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">상태 공간 트리를 탐색하되, 조건에 맞지 않으면 즉시 탐색을 멈추고 돌아오는(Pruning) 가지치기 전략이다.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">백트래킹(Backtracking) 기법을 이해하고, 정적 타입 힌팅 체계를 준수하며 실전 코딩 테스트에 임한다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">제한 시간 90분 내에 LeetCode 수준의 문제 3개를 typing 모듈을 이용한 타입 힌팅과 함께 무결점으로 작성할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론 (1h)</span><span>상태 공간 트리의 가지치기(Pruning) 메커니즘, 코딩 인터뷰 디버깅 전략</span>
+      <span class="ct-label">실습 (2h)</span><span>[수행평가] 기업 코딩 테스트 빈출 유형 3문항 돌파, 타입 힌팅(List[int], Optional) 필수 적용</span>
+    </div>
+  </div>
+
+  <div class="card week-card">
+    <div class="week-head">
+      <span class="week-num exam">Week 15</span>
+      <h3>기말평가</h3>
+      <span class="exam-badge">평가</span>
+    </div>
+    <div class="meta-list">
+      <div class="row"><span class="label idea">핵심 아이디어</span><span class="val">지식의 융합과 실전 문제 해결의 체화.</span></div>
+      <div class="row"><span class="label goal">학습 목표</span><span class="val">15주간 연마한 알고리즘 역량과 파이썬다운 객체 지향 구현 능력을 종합적으로 평가받는다.</span></div>
+      <div class="row"><span class="label crit">성취기준</span><span class="val">주도적으로 문제의 한계 조건을 분석하고 최적의 자료구조를 배치하여 시간 및 공간 복잡도 제약을 통과할 수 있다.</span></div>
+    </div>
+    <div class="class-content">
+      <span class="ct-label">이론/평가 (1.5h)</span><span>전 범위 자료구조 및 알고리즘 기말 코딩 테스트</span>
+      <span class="ct-label">실습/리뷰 (1.5h)</span><span>최종 테스트 리뷰 및 최적화 피드백, 이후 실력 유지를 위한 훈련 로드맵(LeetCode 가이드) 제공</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  15주 완성 파이썬 자료구조 및 알고리즘(DSA) 커리큘럼 · 전체 개요
+</footer>
+
+</body>
+</html>

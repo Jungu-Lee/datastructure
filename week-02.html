@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2주차 · 알고리즘 복잡도 분석과 동적 배열</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF1F6;
+    --surface:#FFFFFF;
+    --surface-2:#F5F7FB;
+    --ink:#14181F;
+    --ink-soft:#4A5468;
+    --ink-faint:#7C8698;
+    --line:#D8DEE9;
+    --ref:#0F7A73;
+    --ref-soft:#E2F3F1;
+    --mutable:#B5502E;
+    --mutable-soft:#F8E9E2;
+    --immutable:#2F4B7C;
+    --immutable-soft:#E8EDF6;
+    --gold:#C9962B;
+    --gold-soft:#FBF1DE;
+    --radius:16px;
+    --serif:'Fraunces', serif;
+    --sans:'Inter', sans-serif;
+    --mono:'JetBrains Mono', monospace;
+    --shadow: 0 1px 2px rgba(20,24,31,0.04), 0 8px 24px -12px rgba(20,24,31,0.12);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background-color:#F7F9FC;
+    background-image:
+      linear-gradient(rgba(47,75,124,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(47,75,124,0.045) 1px, transparent 1px);
+    background-size:42px 42px;
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--gold-soft); color:var(--ink); }
+  h1,h2,h3{ font-family:var(--serif); margin:0 0 .4em; color:var(--ink); font-weight:600; }
+  code{ font-family:var(--mono); background:var(--surface-2); border:1px solid var(--line); border-radius:4px; padding:.1em .35em; font-size:.92em; font-variant-ligatures:none; -webkit-font-feature-settings:"liga" 0; font-feature-settings:"liga" 0; }
+  a{ color:var(--immutable); }
+
+  .container{ max-width:900px; margin:0 auto; padding:0 24px; }
+
+  header{
+    padding:72px 24px 44px;
+    max-width:900px; margin:0 auto;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    display:inline-block; font-family:var(--mono); font-size:12.5px; letter-spacing:.08em;
+    color:var(--ink-faint); text-transform:uppercase; margin-bottom:18px;
+  }
+  header h1{ font-size:clamp(2rem, 4.6vw, 3rem); max-width:18ch; }
+  header .lede{ color:var(--ink-soft); font-size:16px; max-width:62ch; margin-top:14px; }
+
+  nav.toc{
+    max-width:900px; margin:24px auto 0; padding:0 24px;
+    display:flex; flex-wrap:wrap; gap:8px 10px;
+  }
+  nav.toc a{
+    font-family:var(--mono); font-size:12.5px; text-decoration:none;
+    color:var(--ink-soft); background:var(--surface); border:1px solid var(--line);
+    padding:6px 11px; border-radius:20px; transition:.15s;
+  }
+  nav.toc a:hover{ border-color:var(--immutable); color:var(--immutable); }
+
+  section{ max-width:900px; margin:0 auto; padding:44px 24px; }
+
+  .section-head{ margin-bottom:20px; }
+  .section-kicker{
+    display:block; font-family:var(--mono); font-size:12px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px;
+  }
+
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:26px 28px; box-shadow:var(--shadow);
+  }
+
+  .grid-3{ display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+  @media (max-width:760px){ .grid-3{ grid-template-columns:1fr; } }
+  .kv-card{ padding:22px 22px 24px; }
+  .tag{
+    display:inline-block; font-family:var(--mono); font-size:11.5px; letter-spacing:.06em;
+    text-transform:uppercase; padding:4px 10px; border-radius:20px; margin-bottom:12px;
+  }
+  .tag.idea{ background:var(--ref-soft); color:var(--ref); }
+  .tag.goal{ background:var(--gold-soft); color:var(--gold); }
+  .tag.crit{ background:var(--immutable-soft); color:var(--immutable); }
+  .kv-card p, .kv-card ul{ font-size:14.5px; color:var(--ink); margin:0; }
+  .kv-card ul{ padding-left:18px; }
+  .kv-card li{ margin-bottom:4px; }
+
+  .qbox{
+    border-left:3px solid var(--immutable);
+    background:var(--immutable-soft);
+    padding:16px 20px; border-radius:0 10px 10px 0;
+    font-family:var(--serif); font-style:italic; font-size:17px; color:var(--ink);
+    margin:18px 0;
+  }
+
+  .warnbox{
+    border-left:3px solid var(--mutable);
+    background:var(--mutable-soft);
+    padding:16px 20px; border-radius:0 10px 10px 0;
+    margin:16px 0;
+  }
+  .warnbox .wtitle{ font-weight:700; font-size:14.5px; color:#8A3B21; margin:0 0 10px; }
+  .warnbox ol, .warnbox ul{ margin:0; padding-left:20px; font-size:14px; color:var(--ink); }
+  .warnbox li{ margin-bottom:8px; line-height:1.55; }
+  .warnbox li:last-child{ margin-bottom:0; }
+
+  .gate-box{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 26px; box-shadow:var(--shadow);
+  }
+  .gate-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .gate-row input[type=password]{
+    flex:1; min-width:200px; font-family:var(--mono); font-size:14px; padding:10px 14px;
+    border:1px solid var(--line); border-radius:9px; background:var(--surface-2); color:var(--ink);
+  }
+  .gate-row input[type=password]:focus{ outline:none; border-color:var(--immutable); }
+  .gate-status{ font-size:13.5px; margin-top:10px; min-height:20px; }
+  .gate-status.error{ color:var(--mutable); }
+  .gate-status.success{ color:#0B5951; }
+  .gate-status.busy{ color:var(--ink-faint); }
+  .problem-card{ border-left:4px solid var(--immutable); }
+  .problem-card .ptime{
+    display:inline-block; font-family:var(--mono); font-size:11.5px; color:var(--ink-faint);
+    background:var(--surface-2); border:1px solid var(--line); border-radius:20px; padding:3px 10px; margin-bottom:10px;
+  }
+
+  .card.concept p{ font-size:15px; }
+  table.compare-table{ width:100%; border-collapse:collapse; margin:16px 0; font-size:14px; }
+  table.compare-table th, table.compare-table td{ border:1px solid var(--line); padding:10px 14px; text-align:left; }
+  table.compare-table th{ background:var(--surface-2); font-family:var(--mono); font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); }
+  td.im{ color:var(--immutable); }
+  td.mu{ color:var(--mutable); }
+
+  pre{
+    background:#1B2130; border-radius:10px; padding:16px 18px; overflow-x:auto;
+    font-family:var(--mono); font-size:13.5px; color:#E7ECF5; line-height:1.6;
+    font-variant-ligatures:none; -webkit-font-feature-settings:"liga" 0; font-feature-settings:"liga" 0;
+  }
+  .kw{color:#7FB0E0;} .fn{color:#E0C26B;} .st{color:#8FCA8F;} .c1{color:#8593A8; font-style:italic;}
+
+  .predict{
+    background:var(--gold-soft); border:1px solid #EBD9AD; border-radius:12px;
+    padding:16px 20px; margin-top:16px;
+  }
+  .predict .q{ font-weight:600; font-size:14.5px; margin-bottom:10px; color:#7A5C13; }
+  .btn{
+    font-family:var(--sans); font-size:13.5px; font-weight:600; border-radius:9px;
+    padding:9px 16px; border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    cursor:pointer; transition:.15s;
+  }
+  .btn:hover{ border-color:var(--immutable); color:var(--immutable); }
+  .btn.primary{ background:var(--immutable); color:#fff; border-color:var(--immutable); }
+  .btn.primary:hover{ opacity:.9; }
+  .reveal-panel{
+    display:none; margin-top:12px; padding-top:12px; border-top:1px dashed #EBD9AD;
+    font-size:14.5px; color:#5C4610;
+  }
+  .reveal-panel.show{ display:block; }
+
+  .shelfviz{ padding:24px 26px; }
+  .shelfviz .controls{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin:14px 0 20px; }
+  .shelfviz input[type=range]{ flex:1; min-width:160px; accent-color:var(--immutable); }
+  .n-readout{
+    font-family:var(--mono); font-size:13px; background:var(--surface-2); border:1px solid var(--line);
+    color:var(--immutable); padding:5px 12px; border-radius:20px; min-width:88px; text-align:center;
+  }
+  .bar-row{ display:flex; align-items:center; gap:12px; margin:10px 0; }
+  .bar-label{ width:110px; flex-shrink:0; font-family:var(--mono); font-size:12.5px; color:var(--ink-soft); text-align:right; }
+  .bar-track{ flex:1; background:var(--surface-2); border:1px solid var(--line); border-radius:6px; overflow:hidden; height:24px; }
+  .bar-fill{ height:100%; border-radius:6px 0 0 6px; display:flex; align-items:center; transition:width .35s ease; }
+  .bar-fill span{ font-family:var(--mono); font-size:11.5px; color:#fff; padding-left:10px; white-space:nowrap; }
+
+  .card.activity{ border-left:4px solid var(--ref); }
+  .card.activity ol{ padding-left:20px; font-size:14.5px; }
+  .card.activity li{ margin-bottom:8px; }
+
+  .dup-diagram{ margin:18px 0; padding:18px 20px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; }
+  .dup-array{ display:flex; gap:8px; margin-bottom:6px; }
+  .dup-cell{
+    width:44px; height:44px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    border:2px solid var(--line); border-radius:8px; font-family:var(--mono); font-size:15px;
+    background:var(--surface); color:var(--ink); transition:.25s;
+  }
+  .dup-cell.slow{ border-color:var(--ref); box-shadow:0 0 0 2px var(--ref-soft) inset; color:#0B5951; font-weight:600; }
+  .dup-cell.fast{ border-color:var(--gold); }
+  .dup-cell.changed{ background:var(--gold-soft); }
+  .dup-cell.stale{ opacity:.35; }
+  .dup-pointer-row{ display:flex; gap:8px; margin-bottom:14px; }
+  .dup-pointer-label{
+    width:44px; flex-shrink:0; text-align:center; font-family:var(--mono); font-size:10.5px;
+    color:var(--ink-faint); height:16px; letter-spacing:.02em;
+  }
+  .dup-pointer-label.slow-label{ color:var(--ref); font-weight:700; }
+  .dup-pointer-label.fast-label{ color:var(--gold); font-weight:700; }
+  .dup-caption{ font-size:14px; color:var(--ink-soft); min-height:42px; margin-bottom:12px; line-height:1.55; }
+  .dup-controls{ display:flex; align-items:center; gap:12px; }
+  .dup-step-indicator{ font-family:var(--mono); font-size:12px; color:var(--ink-faint); }
+
+  .mystery-viz{ margin:16px 0; padding:16px 20px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; }
+  .mystery-controls{ display:flex; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+  .mystery-controls input[type=range]{ flex:1; min-width:140px; accent-color:var(--immutable); }
+  .mystery-track-wrap{ position:relative; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:3px; }
+  .mystery-n-marker{
+    position:absolute; top:-4px; bottom:-4px; width:0; border-left:2px dashed var(--mutable); pointer-events:none;
+  }
+  .mystery-n-marker span{
+    position:absolute; top:-18px; left:-8px; font-family:var(--mono); font-size:11px; font-weight:700;
+    color:var(--mutable); background:var(--surface-2); padding:0 3px; border-radius:3px;
+  }
+  .mystery-track{ display:flex; height:34px; border-radius:6px; overflow:hidden; }
+  .mystery-seg{
+    height:100%; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:10.5px; color:#fff; border-right:1px solid rgba(255,255,255,.35);
+    overflow:hidden; white-space:nowrap;
+  }
+  .mystery-seg.remainder{ background:repeating-linear-gradient(45deg, #E6EAF1, #E6EAF1 6px, #DCE1EA 6px, #DCE1EA 12px); border-right:none; }
+  .mystery-caption{ font-size:13.5px; color:var(--ink-soft); margin-top:10px; line-height:1.55; }
+
+  .water-viz{ margin:16px 0; padding:16px 20px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; }
+  .water-controls{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:12px; }
+  .water-controls label{ display:flex; flex-direction:column; gap:4px; font-family:var(--mono); font-size:12px; color:var(--ink-soft); flex:1; min-width:160px; }
+  .water-controls input[type=range]{ accent-color:var(--immutable); }
+  .water-caption{ font-size:13.5px; color:var(--ink-soft); margin-top:10px; line-height:1.55; }
+
+  .pseudocode{
+    background:var(--immutable-soft); border:1px solid #C7D3E8; border-radius:12px;
+    padding:16px 20px; margin:14px 0;
+  }
+  .pseudocode .pc-title{
+    display:flex; align-items:center; gap:8px; font-family:var(--serif); font-style:italic; font-size:15px;
+    color:var(--immutable); margin:0 0 10px; font-weight:600;
+  }
+  .pseudocode ol{ margin:0; padding-left:20px; font-size:14px; color:var(--ink); }
+  .pseudocode li{ margin-bottom:6px; line-height:1.55; }
+  .pseudocode li:last-child{ margin-bottom:0; }
+
+  .chartbox{ margin-top:20px; padding-top:18px; border-top:1px dashed var(--line); }
+  .paste-area{
+    width:100%; min-height:96px; font-family:var(--mono); font-size:12.5px; color:var(--ink);
+    background:#1B2130; color:#E7ECF5; border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; resize:vertical; line-height:1.6;
+  }
+  .paste-area::placeholder{ color:#7C8698; }
+  .paste-area:focus{ outline:none; border-color:var(--immutable); }
+  .chart-input-grid{ display:flex; flex-direction:column; gap:6px; }
+  .chart-input-row{
+    display:grid; grid-template-columns:110px 1fr 1fr 30px; gap:10px; align-items:center;
+  }
+  .chart-input-row.chart-input-head span{
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em;
+  }
+  .chart-input-row span{ font-family:var(--mono); font-size:13px; color:var(--ink-soft); }
+  .chart-input-row input{
+    font-family:var(--mono); font-size:13px; padding:7px 10px; border:1px solid var(--line);
+    border-radius:7px; background:var(--surface); color:var(--ink); width:100%;
+  }
+  .chart-input-row input:focus{ outline:none; border-color:var(--immutable); }
+  .row-del{
+    background:transparent; border:none; color:var(--ink-faint); cursor:pointer; font-size:14px;
+    width:26px; height:26px; border-radius:6px; transition:.15s;
+  }
+  .row-del:hover{ background:var(--mutable-soft); color:var(--mutable); }
+  .chart-legend{ display:flex; gap:20px; flex-wrap:wrap; margin-top:10px; font-size:13px; color:var(--ink-soft); }
+  .chart-legend span{ display:flex; align-items:center; gap:6px; }
+  .chart-legend i{ width:12px; height:12px; border-radius:3px; display:inline-block; }
+
+  .quiz-item{ margin-bottom:16px; }
+  .quiz-q{ font-weight:600; font-size:15px; margin-bottom:12px; }
+  .quiz-opts{ display:flex; flex-direction:column; gap:8px; }
+  .quiz-opt{
+    text-align:left; font-family:var(--sans); font-size:14.5px; background:var(--surface-2);
+    border:1px solid var(--line); color:var(--ink); padding:11px 16px; border-radius:9px; cursor:pointer;
+    transition:.15s;
+  }
+  .quiz-opt:hover:not(:disabled){ border-color:var(--immutable); }
+  .quiz-opt.correct{ background:var(--ref-soft); border-color:var(--ref); color:#0B5951; font-weight:600; }
+  .quiz-opt.wrong{ background:var(--mutable-soft); border-color:var(--mutable); color:#8A3B21; }
+  .quiz-opt:disabled{ cursor:default; }
+  .quiz-explain{ display:none; margin-top:10px; font-size:13.8px; color:var(--ink-soft); background:var(--surface-2); border-radius:9px; padding:12px 16px; }
+  .quiz-explain.show{ display:block; }
+  .quiz-score{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    background:var(--immutable); color:#fff; border-radius:12px; padding:18px 22px; margin-top:8px;
+  }
+  .quiz-score .num{ font-family:var(--serif); font-size:26px; }
+
+  .checklist{ display:flex; flex-direction:column; }
+  .check-row{
+    display:flex; gap:12px; align-items:flex-start; padding:13px 0;
+    border-bottom:1px solid var(--line); transition:.15s;
+  }
+  .check-row:last-child{ border-bottom:none; }
+  .check-row.done label{ color:var(--ink-faint); text-decoration:line-through; }
+  .check-row input{ margin-top:3px; width:17px; height:17px; accent-color:var(--ref); flex-shrink:0; }
+  .check-row label{ font-size:14.5px; cursor:pointer; }
+  .progress-wrap{ margin-top:18px; }
+  .progress-bar{ height:8px; background:var(--surface-2); border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+  .progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--ref), var(--gold)); transition:width .3s; }
+  .progress-text{ font-family:var(--mono); font-size:12.5px; color:var(--ink-faint); margin-top:8px; }
+
+  footer{ text-align:center; padding:48px 24px 64px; color:var(--ink-faint); font-size:13.5px; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; scroll-behavior:auto !important; } }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="eyebrow">Week 02 · Array &amp; Big-O</span>
+  <h1>알고리즘 복잡도 분석과 동적 배열(Array)</h1>
+  <p class="lede">내가 작성한 코드가 얼마나 빠르고, 얼마나 많은 메모리를 쓰는지 — 감이 아니라 <b>수식</b>으로 말할 수 있을까요? 이 학습자료는 그 질문에 스스로 답할 수 있도록, 개념 설명과 실습·예측 활동을 번갈아 배치했습니다.</p>
+</header>
+
+<nav class="toc">
+  <a href="#question">핵심 질문</a>
+  <a href="#theory1">점근적 표기법</a>
+  <a href="#practice">복잡도 예측 연습</a>
+  <a href="#viz">복잡도 시각화</a>
+  <a href="#theory2">배열의 물리학</a>
+  <a href="#space">공간 복잡도</a>
+  <a href="#activity1">실습① 벤치마크</a>
+  <a href="#activity2">실습② 투 포인터</a>
+  <a href="#activity3">실습③ 응용 5선</a>
+  <a href="#assessment">통합 과제</a>
+  <a href="#quiz">확인 퀴즈</a>
+  <a href="#check">자가진단</a>
+</nav>
+
+<section aria-labelledby="overview-h">
+  <div class="grid-3">
+    <div class="card kv-card idea">
+      <span class="tag idea">핵심 아이디어</span>
+      <p>알고리즘의 효율성은 입력 크기에 따른 자원 소모량의 증가율(<b>Big-O</b>)로 객관적 평가가 가능하다.</p>
+    </div>
+    <div class="card kv-card goal">
+      <span class="tag goal">학습 목표</span>
+      <p>점근적 표기법을 이해하고, 파이썬 리스트(동적 배열)의 성능 한계를 분석한다.</p>
+    </div>
+    <div class="card kv-card crit">
+      <span class="tag crit">성취기준</span>
+      <ul>
+        <li>append·insert의 시간 복잡도를 O(1)/O(N)으로 산출할 수 있다.</li>
+        <li>투 포인터 기법을 배열에 적용할 수 있다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="question" aria-labelledby="q-h">
+  <div class="section-head">
+    <span class="section-kicker">핵심 질문</span>
+    <h2 id="q-h">내 코드는 얼마나 빠를까?</h2>
+  </div>
+  <div class="qbox">내가 작성한 코드는 얼마나 빠르며, 메모리를 얼마나 차지할지 — 수학적으로 증명할 수 있을까?</div>
+  <p style="font-size:15px; color:var(--ink-soft);">1주차에서 우리는 변수가 데이터를 담는 상자가 아니라 <b>참조(Reference)</b>라는 것을 배웠습니다. 이번 주에는 한 걸음 더 나아가 "내 코드가 빠른가 느린가"를 <b>수식</b>으로 말하는 법을 배웁니다. 이것이 모든 자료구조·알고리즘 선택의 판단 기준이 되는 Big-O 표기법입니다.</p>
+</section>
+
+<section id="theory1" aria-labelledby="t1-h">
+  <div class="section-head">
+    <span class="section-kicker">개념 01</span>
+    <h2 id="t1-h">점근적 표기법 — Big-O, Big-Ω, Big-Θ</h2>
+  </div>
+  <div class="card concept">
+    <p>세 표기법은 같은 대상(자원 소모량의 증가율)을 서로 다른 각도에서 봅니다.</p>
+    <table class="compare-table">
+      <tr><th>표기</th><th>의미</th><th>실생활 비유</th></tr>
+      <tr><td><code>O(f(n))</code></td><td>상한선 — <b>최악의 경우</b> 이보다 느리지 않다</td><td>"아무리 막혀도 30분 안에는 도착한다"</td></tr>
+      <tr><td><code>Ω(f(n))</code></td><td>하한선 — <b>최선의 경우</b> 이보다 빠르지 않다</td><td>"아무리 뻥 뚫려도 10분보다 빨리는 못 간다"</td></tr>
+      <tr><td><code>Θ(f(n))</code></td><td>상한=하한 — 사실상 <b>정확한 증가율</b></td><td>"매번 거의 정확히 15분 걸린다"</td></tr>
+    </table>
+    <p>실무에서는 최악의 경우를 대비해야 하므로 <b>O(f(n))</b>가 압도적으로 자주 쓰입니다. 이 강좌에서 "복잡도"라고 말하면 특별한 언급이 없는 한 Big-O를 뜻합니다.</p>
+
+    <table class="compare-table">
+      <tr><th>상황</th><th>주로 쓰는 표기</th></tr>
+      <tr><td>"최악의 경우 얼마나 걸릴지 보장해야 한다" (실무 대부분)</td><td class="im"><code>O</code></td></tr>
+      <tr><td>"이 문제는 최소 몇 번의 연산이 필요한지 증명한다" (알고리즘 이론)</td><td class="mu"><code>Ω</code></td></tr>
+      <tr><td>"최선·최악이 같아서 정확한 증가율을 말하고 싶다" (교재·논문)</td><td class="im"><code>Θ</code></td></tr>
+    </table>
+    <p style="font-size:14px; color:var(--ink-soft);">그렇다고 Ω와 Θ가 쓸모없는 건 아닙니다. <b>Ω(하한)</b>는 "이 문제는 아무리 잘 짜도 최소 이만큼은 걸린다"는 <b>문제 자체의 한계</b>를 증명할 때 씁니다 — 예를 들어 비교 기반 정렬은 Ω(N log N)이라는 사실은, 어떤 정렬 알고리즘을 만들어도 비교 연산만으로는 이보다 빠를 수 없다는 하한 증명입니다. 덕분에 엔지니어가 불가능한 최적화에 시간을 낭비하지 않게 됩니다.</p>
+
+    <div class="predict">
+      <div class="q">🔎 그런데 "비교 기반 정렬은 Ω(N log N)"이라는 건 어떻게 증명할 수 있을까? — 결정 트리(Decision Tree) 논증</div>
+      <button class="btn" onclick="toggleReveal('rOmega')">증명 확인</button>
+      <div class="reveal-panel" id="rOmega-panel">
+        <p style="margin:0 0 10px;"><b>핵심 아이디어:</b> 원소끼리 <code>&lt;</code>, <code>&gt;</code>로만 비교하는 정렬 알고리즘(퀵 정렬, 병합 정렬, 힙 정렬 등)의 실행 과정은 하나의 <b>이진 결정 트리</b>로 그릴 수 있습니다. 각 내부 노드는 "원소 A와 B를 비교한다"는 한 번의 비교이고, 그 결과(A&lt;B 인지 A&gt;B 인지)에 따라 왼쪽·오른쪽 가지로 내려갑니다. 각 리프(leaf)는 하나의 "정렬 결과(순열)"를 의미합니다.</p>
+        <ol style="padding-left:18px; font-size:14px; margin:0 0 10px;">
+          <li><b>리프의 개수:</b> 원소가 N개면 가능한 순서(순열)는 N!가지입니다. 알고리즘이 이 N!가지를 전부 구별해내려면 트리에 최소 N!개의 리프가 있어야 합니다.</li>
+          <li><b>트리 높이 = 비교 횟수:</b> 이진 트리는 높이가 h일 때 리프가 최대 2<sup>h</sup>개입니다. 따라서 2<sup>h</sup> ≥ N! 이 성립해야 하므로, h ≥ log₂(N!) 입니다. 여기서 h가 곧 "최악의 경우 필요한 비교 횟수"입니다.</li>
+          <li><b>log₂(N!) 정리:</b> 스털링 근사에 따르면 log₂(N!) ≈ N log₂N − N log₂e 이고, 최고차항만 남기면 log₂(N!) = Θ(N log N)입니다.</li>
+        </ol>
+        <p style="margin:0;">즉, 비교만 사용하는 정렬 알고리즘은 아무리 잘 설계해도 최소 <b>Ω(N log N)번의 비교</b>가 필요하다는 것이 수학적으로 증명됩니다. 그래서 병합 정렬·힙 정렬의 O(N log N)은 우연이 아니라 <b>이미 이 하한선에 도달한 최적의 알고리즘</b>이라는 뜻입니다. (참고: 계수 정렬·기수 정렬처럼 값을 비교하지 않고 다른 성질을 이용하는 정렬은 이 하한을 벗어나 O(N)도 가능합니다 — 이 증명은 어디까지나 "비교 기반" 정렬에 한정됩니다.)</p>
+      </div>
+    </div>
+
+    <p style="font-size:14px; color:var(--ink-soft);"><b>Θ(상한=하한)</b>는 최선·최악의 성능 차이가 거의 없는 알고리즘(예: 병합 정렬 — 항상 Θ(N log N))을 "입력과 무관하게 항상 이 정도 걸린다"고 정확히 표현하고 싶을 때 씁니다. 반대로 퀵 정렬처럼 최선(Θ(N log N))과 최악(Θ(N²))이 크게 갈리는 알고리즘은 Θ 하나로 뭉뚱그릴 수 없어서, 이럴 땐 오히려 O로 최악만 짚어 말하는 게 더 실용적입니다.</p>
+
+    <div class="predict">
+      <div class="q">🔎 예측하기 — 아래 함수 <code>mystery(n)</code>의 시간 복잡도는 O(n²), O(n log n), O(n) 중 무엇일까요? 겉보기엔 이중 루프지만, <code>i</code>가 어떻게 변하는지 잘 보세요.</div>
+      <pre style="margin-bottom:10px;"><span class="kw">def</span> <span class="fn">mystery</span>(n):
+    count = 0
+    i = 1
+    <span class="kw">while</span> i &lt; n:
+        <span class="kw">for</span> j <span class="kw">in</span> range(i):
+            count += 1
+        i *= 2      <span class="c1"># i가 두 배씩 늘어난다</span>
+    <span class="kw">return</span> count</pre>
+
+      <div class="mystery-viz">
+        <div class="mystery-controls">
+          <span style="font-family:var(--mono); font-size:13px; color:var(--ink-soft);">n =</span>
+          <input type="range" id="mysterySlider" min="4" max="200" value="32">
+          <span class="n-readout" id="mysteryReadout">n = 32</span>
+        </div>
+        <p style="font-size:13px; color:var(--ink-soft); margin:0 0 8px;">안쪽 루프가 도는 횟수(1, 2, 4, 8, …)를 막대 조각으로 이어 붙였습니다. 조각들의 합이 n 전체 길이에 얼마나 가까운지 확인해 보세요.</p>
+        <div class="mystery-track-wrap">
+          <div class="mystery-track" id="mysteryTrack"></div>
+          <div class="mystery-n-marker" id="mysteryNMarker" style="display:none;"><span>n</span></div>
+        </div>
+        <div class="mystery-caption" id="mysteryCaption"></div>
+      </div>
+
+      <p style="font-size:13.5px; color:#7A5C13; margin:0 0 10px;">힌트: 바깥 루프가 도는 횟수와, 안쪽 루프가 매번 도는 횟수(1, 2, 4, 8, …)를 각각 세어 전체 반복 횟수의 합을 구해보세요.</p>
+      <button class="btn" onclick="toggleReveal('r1')">정답 확인</button>
+      <div class="reveal-panel" id="r1-panel">
+        정답은 <b>O(n)</b>입니다. <code>i</code>가 1, 2, 4, 8, …로 두 배씩 늘어나므로 바깥 루프는 log₂(n)번만 돕니다. 이때 안쪽 루프의 반복 횟수를 모두 더하면 등비수열의 합 공식에 의해 <b>n의 2배 미만</b>에 항상 머뭅니다(위 시각화에서 n이 2의 거듭제곱이 아닐 때는 합이 n보다 커질 수도 있다는 걸 직접 확인해 보세요). 정확한 값이 n보다 크든 작든 중요하지 않습니다 — <b>n이 커져도 합이 n에 비례해서만 늘어난다</b>는 사실 자체가 O(n)이라는 뜻입니다. 즉 "루프가 두 겹이니 무조건 O(n²)"이라는 성급한 결론은 틀렸습니다 — <b>안쪽 루프의 반복 횟수가 매번 달라질 때는, 각 반복마다 실제 실행 횟수를 더해서 총합을 구해야</b> 정확한 복잡도가 나옵니다. 이런 패턴은 이후 힙(9주차)의 heapify 분석에서도 똑같이 등장합니다.
+      </div>
+    </div>
+
+    <div class="chartbox">
+      <p style="font-weight:600; margin:0 0 4px;">🔬 실습으로 직접 확인하기 — 정말 O(n)이 맞을까?</p>
+      <p style="font-size:13.5px; color:var(--ink-soft); margin:0 0 12px;">추론이 맞는지 실제로 실행시간을 재서 검증해 봅시다. n을 두 배씩 늘려가며 <code>mystery(n)</code>의 실행 시간을 측정하세요. <b>O(n)이라면 n이 두 배가 될 때 시간도 대략 두 배</b>가 되어야 합니다(O(n²)이라면 네 배, O(log n)이라면 거의 변화가 없어야겠죠).</p>
+      <pre><span class="kw">import</span> time
+
+<span class="kw">def</span> <span class="fn">mystery</span>(n):
+    count = 0
+    i = 1
+    <span class="kw">while</span> i &lt; n:
+        <span class="kw">for</span> j <span class="kw">in</span> range(i):
+            count += 1
+        i *= 2
+    <span class="kw">return</span> count
+
+<span class="kw">def</span> <span class="fn">bench_mystery</span>(n):
+    start = time.perf_counter()
+    mystery(n)
+    <span class="kw">return</span> time.perf_counter() - start
+
+<span class="kw">for</span> n <span class="kw">in</span> [100_000, 200_000, 400_000, 800_000, 1_600_000]:
+    <span class="fn">print</span>(n, <span class="fn">bench_mystery</span>(n))</pre>
+
+      <textarea id="mysteryPasteArea" class="paste-area" placeholder="예: 100000 0.0031&#10;200000 0.0063&#10;400000 0.0125&#10;...(print() 출력 결과를 그대로 붙여넣으세요)"></textarea>
+      <div style="display:flex; gap:10px; margin:10px 0 18px;">
+        <button class="btn primary" onclick="parseMysteryPaste()">붙여넣은 값 자동 입력</button>
+        <button class="btn" onclick="fillMysterySampleData()">예시 값으로 채우기</button>
+        <button class="btn" onclick="addMysteryRow()">+ 행 추가</button>
+      </div>
+
+      <div class="chart-input-grid">
+        <div class="chart-input-row chart-input-head">
+          <span>n</span><span>mystery(n) 시간(초)</span><span></span><span></span>
+        </div>
+        <div id="mysteryChartRows"></div>
+      </div>
+
+      <svg id="mysteryBenchChart" viewBox="0 0 640 300" style="width:100%; height:auto; background:var(--surface-2); border:1px solid var(--line); border-radius:10px; margin-top:14px;"></svg>
+      <div class="chart-legend">
+        <span><i style="background:var(--ref);"></i> mystery(n) 실측 시간 — 직선에 가깝다면 O(n)이 맞다는 뜻</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="practice" aria-labelledby="practice-h">
+  <div class="section-head">
+    <span class="section-kicker">연습 · 개념 01 적용</span>
+    <h2 id="practice-h">코드만 보고 복잡도 예측하기</h2>
+    <p style="color:var(--ink-soft); font-size:14.5px;">아래 네 가지 코드를 보고, 먼저 스스로 복잡도를 적어본 뒤 정답을 확인하세요. 정답만 맞히는 것보다 <b>"왜 그런지" 근거를 한 문장으로 말할 수 있는지</b>가 더 중요합니다.</p>
+  </div>
+
+  <div class="card concept" style="margin-bottom:14px;">
+    <p style="font-weight:600; margin-bottom:10px;">연습 ① — 두 개의 순차적인 반복문</p>
+    <pre><span class="kw">def</span> <span class="fn">f1</span>(n):
+    <span class="kw">for</span> i <span class="kw">in</span> range(n):
+        print(i)
+    <span class="kw">for</span> j <span class="kw">in</span> range(n):
+        print(j)</pre>
+    <div class="predict">
+      <div class="q">🔎 이 함수의 시간 복잡도는? (O(n), O(n²), O(2n) 중 가장 정확한 표현은?)</div>
+      <button class="btn" onclick="toggleReveal('r5')">정답 확인</button>
+      <div class="reveal-panel" id="r5-panel">
+        정답은 <b>O(n)</b>입니다. 두 반복문이 중첩(nested)된 것이 아니라 순차적으로 실행되므로 연산 횟수는 n + n = 2n입니다. Big-O는 상수 배수를 무시하므로 O(2n)이 아니라 O(n)으로 씁니다. "반복문이 두 개 있다고 무조건 O(n²)"이라는 오해를 조심하세요 — <b>중첩되어 있는지, 나란히 있는지</b>를 먼저 확인해야 합니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="card concept" style="margin-bottom:14px;">
+    <p style="font-weight:600; margin-bottom:10px;">연습 ② — 안쪽 루프의 범위가 바깥 변수에 의존</p>
+    <pre><span class="kw">def</span> <span class="fn">f2</span>(n):
+    count = 0
+    <span class="kw">for</span> i <span class="kw">in</span> range(n):
+        <span class="kw">for</span> j <span class="kw">in</span> range(i):
+            count += 1
+    <span class="kw">return</span> count</pre>
+    <div class="predict">
+      <div class="q">🔎 이 함수의 시간 복잡도는?</div>
+      <button class="btn" onclick="toggleReveal('r6')">정답 확인</button>
+      <div class="reveal-panel" id="r6-panel">
+        정답은 <b>O(n²)</b>입니다. 안쪽 루프가 매번 0, 1, 2, …, n-1번 돌므로 전체 반복 횟수는 0+1+2+…+(n-1) = n(n-1)/2 입니다. 최고차항만 남기고 계수와 낮은 차수 항을 버리면 O(n²)이 됩니다. 실습①에서 본 <code>insert(0, x)</code>를 n번 반복하는 것과 정확히 같은 형태입니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="card concept" style="margin-bottom:14px;">
+    <p style="font-weight:600; margin-bottom:10px;">연습 ③ — 매번 절반씩 줄어드는 반복</p>
+    <pre><span class="kw">def</span> <span class="fn">f3</span>(n):
+    count = 0
+    <span class="kw">while</span> n &gt; 1:
+        n = n // 2
+        count += 1
+    <span class="kw">return</span> count</pre>
+    <div class="predict">
+      <div class="q">🔎 이 함수의 시간 복잡도는?</div>
+      <button class="btn" onclick="toggleReveal('r7')">정답 확인</button>
+      <div class="reveal-panel" id="r7-panel">
+        정답은 <b>O(log n)</b>입니다. n이 매 반복마다 절반이 되므로, n이 1 이하로 줄어들 때까지 걸리는 반복 횟수는 "n을 몇 번 2로 나눠야 1이 되는가", 즉 log₂(n)번입니다. 이 패턴은 이진 탐색(12주차)의 핵심 원리와 완전히 동일합니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="card concept">
+    <p style="font-weight:600; margin-bottom:10px;">연습 ④ — 반복문은 하나뿐인데 왜 O(n²)일까? (숨어있는 반복문 함정)</p>
+    <pre><span class="kw">def</span> <span class="fn">contains_dup</span>(nums):
+    <span class="kw">for</span> i <span class="kw">in</span> range(len(nums)):
+        <span class="kw">if</span> nums[i] <span class="kw">in</span> nums[i+1:]:
+            <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">return</span> <span class="kw">False</span></pre>
+    <div class="predict">
+      <div class="q">🔎 for문은 딱 하나뿐입니다. 그런데 정말 O(n)일까요? 힌트: 파이썬 리스트에서 <code>x in lst</code>(값이 들어있는지 검사)는 최악의 경우 리스트를 처음부터 끝까지 순차 비교하므로 그 자체로 O(N)입니다.</div>
+      <button class="btn" onclick="toggleReveal('r8')">정답 확인</button>
+      <div class="reveal-panel" id="r8-panel">
+        정답은 <b>O(n²)</b>입니다. for문이 한 겹이니 O(n)이라고 생각하기 쉽지만, 그 반복문 <b>안에서 호출하는 <code>nums[i] in nums[i+1:]</code> 자체가 이미 리스트를 처음부터 끝까지 훑는 O(N) 연산</b>입니다. 즉 코드에는 눈에 보이는 for문이 하나뿐이지만, 실제로는 "O(n) 루프 안에 O(n) 연산이 숨어있는" 이중 루프와 같은 구조입니다. 그래서 전체는 O(n) × O(n) = O(n²)이 됩니다. <b>함수나 연산자를 호출할 때 그 내부 복잡도까지 감안해야</b> 정확한 분석이 됩니다 — 이후 6주차 해시 테이블에서 <code>x in dict</code>(O(1))로 바꾸면 왜 성능이 극적으로 개선되는지 이해하는 기초가 됩니다.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="viz" aria-labelledby="viz-h">
+  <div class="section-head">
+    <span class="section-kicker">직접 눈으로 확인하기</span>
+    <h2 id="viz-h">n이 커지면 작업량은 얼마나 늘어날까?</h2>
+    <p style="color:var(--ink-soft); font-size:14.5px;">슬라이더로 입력 크기 n을 조절해 보세요. 막대 길이는 상대적인 작업량을 로그 스케일로 표현한 것입니다.</p>
+  </div>
+  <div class="card shelfviz">
+    <div class="controls">
+      <span style="font-family:var(--mono); font-size:13px; color:var(--ink-soft);">n =</span>
+      <input type="range" id="nSlider" min="2" max="500" value="10">
+      <span class="n-readout" id="nReadout">n = 10</span>
+    </div>
+    <div id="bars"></div>
+  </div>
+  <p style="font-size:14.5px; color:var(--ink-soft); margin-top:14px;"><b>관찰 포인트:</b> n이 작을 땐 O(N²)도 O(N log N)과 큰 차이가 없어 보이지만, n을 300 이상으로 올려보면 격차가 폭발적으로 벌어집니다. 알고리즘 선택은 데이터가 커질수록 더 중요해집니다.</p>
+</section>
+
+<section id="theory2" aria-labelledby="t2-h">
+  <div class="section-head">
+    <span class="section-kicker">개념 02</span>
+    <h2 id="t2-h">메모리의 물리적 연속성 — "고정된 도서관 책장"</h2>
+  </div>
+  <div class="card concept">
+    <p>파이썬의 <code>list</code>는 내부적으로 <b>연속된 메모리 블록</b>에 원소의 참조를 순서대로 저장합니다. 이걸 도서관 책장에 비유하면 이렇습니다.</p>
+    <p>책장의 칸은 이미 못으로 고정되어 있습니다. <b>맨 끝 칸에 책을 추가</b>하는 건 쉽습니다 — 바로 옆에 꽂으면 되니까요 (평균 O(1)). 하지만 <b>맨 앞이나 중간에 책을 끼워 넣으려면</b>, 그 뒤에 있는 책을 전부 한 칸씩 밀어야 합니다 (O(N)). 책장이 꽉 차면 관리인이 <b>더 큰 새 책장을 통째로 구해와서</b> 기존 책을 전부 옮겨 꽂습니다 — 이것이 동적 배열의 <b>재할당(resize)</b>입니다.</p>
+    <table class="compare-table">
+      <tr><th>연산</th><th>코드</th><th>평균 복잡도</th><th>왜?</th></tr>
+      <tr><td>끝에 추가</td><td><code>lst.append(x)</code></td><td class="im">O(1) <span style="color:var(--ink-faint);font-size:12px;">(분할상환)</span></td><td>여유 공간이 있으면 바로 삽입</td></tr>
+      <tr><td>끝에 추가(재할당 순간)</td><td><code>lst.append(x)</code></td><td class="mu">O(N)</td><td>더 큰 메모리 블록으로 전체 복사</td></tr>
+      <tr><td>맨 앞/중간 삽입</td><td><code>lst.insert(0, x)</code></td><td class="mu">O(N)</td><td>뒤 원소를 전부 한 칸씩 이동</td></tr>
+      <tr><td>인덱스 접근</td><td><code>lst[i]</code></td><td class="im">O(1)</td><td>주소 계산만으로 즉시 위치 특정</td></tr>
+      <tr><td>값으로 검색</td><td><code>x in lst</code></td><td class="mu">O(N)</td><td>처음부터 순차 비교</td></tr>
+    </table>
+    <p style="font-size:14px; color:var(--ink-soft);">위 표의 두 줄 — <b>"끝에 추가" O(1)</b>과 <b>"끝에 추가(재할당 순간)" O(N)</b> — 은 서로 다른 걸 가리키는 게 아니라, <b>같은 append를 보는 두 가지 관점</b>입니다. append <b>한 번만</b> 딱 떼어놓고 볼 때, 그 호출이 우연히 재할당을 유발한다면 그 한 번은 O(N)이 걸립니다. 하지만 append를 <b>여러 번 반복했을 때 평균</b>을 내면, 재할당은 아주 가끔만 일어나므로 전체 평균은 O(1)에 가까워집니다 — 이것이 "평균 O(1) (분할상환)"이라는 표기의 의미입니다. 즉 O(N)은 "최악의 한 순간", O(1)은 "여러 번에 걸친 평균"을 말하는 것이므로 모순이 아닙니다. 아래 예측하기에서 이 관계를 숫자로 직접 확인해 보세요.</p>
+    <div class="predict">
+      <div class="q">🔎 예측하기 — 아래 코드에서 append 100만 번 중, O(N)이 걸리는 재할당은 대략 몇 번 일어날까요?</div>
+      <pre style="margin-bottom:10px;"><span class="kw">lst</span> = []
+<span class="kw">for</span> i <span class="kw">in</span> range(<span class="st">1_000_000</span>):
+    lst.append(i)</pre>
+      <button class="btn" onclick="toggleReveal('r2')">정답 확인</button>
+      <div class="reveal-panel" id="r2-panel">
+        동적 배열이 꽉 찰 때마다 용량을 이전의 <b>k배</b>로 늘린다고 하면, 크기 1에서 n까지 도달하는 데 필요한 재할당 횟수는 대략 log<sub>k</sub>(n)번입니다(매번 용량이 k배가 되니, n에 도달하려면 k를 그만큼 여러 번 곱해야 하기 때문입니다).
+        <ul style="margin:10px 0 10px 18px; font-size:14px;">
+          <li>단순히 "두 배씩 늘어난다"(k=2)고 가정하면 log₂(1,000,000) ≈ <b>20번</b>입니다.</li>
+          <li>하지만 CPython이 실제로 쓰는 성장 계수는 2배가 아니라 <b>약 1.125배</b>에 가깝습니다(완만하게 늘려서 메모리 낭비를 줄이기 위함). 이 경우 ln(1,000,000)/ln(1.125) ≈ <b>약 117번</b>입니다.</li>
+        </ul>
+        어느 쪽 숫자를 쓰든 결론은 같습니다 — 100만 번의 append 중 재할당은 <b>수십~백여 번, 즉 0.01% 수준</b>밖에 일어나지 않습니다. 이렇게 극소수의 O(N) 이벤트를 전체 호출 수로 나누어 "평균"을 내면, append 한 번당 비용은 사실상 O(1)로 수렴합니다 — 이것이 <b>분할상환(amortized) O(1)</b>의 의미입니다.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="space" aria-labelledby="space-h">
+  <div class="section-head">
+    <span class="section-kicker">개념 03</span>
+    <h2 id="space-h">공간 복잡도(Space Complexity) — 시간 말고 메모리도 잰다</h2>
+  </div>
+  <div class="card concept">
+    <p>지금까지는 "얼마나 오래 걸리는가"(시간 복잡도)만 이야기했습니다. 하지만 이번 주 핵심 질문이 애초에 "얼마나 빠르며, <b>메모리를 얼마나 차지할지</b>"였다는 걸 기억하시나요? <b>공간 복잡도</b>는 입력 크기 n이 커질 때 알고리즘이 <b>추가로</b> 필요로 하는 메모리가 어떻게 늘어나는지를 시간 복잡도와 똑같이 Big-O로 표현한 것입니다.</p>
+
+    <table class="compare-table">
+      <tr><th>상황</th><th>공간 복잡도</th><th>이번 주 예시</th></tr>
+      <tr><td>입력과 무관하게 변수 몇 개만 사용</td><td class="im">O(1)</td><td>응용① <code>hi, lo</code> / 응용②의 in-place 수정 / 응용③의 <code>left, right</code></td></tr>
+      <tr><td>입력 크기에 비례하는 새 리스트를 생성</td><td class="mu">O(N)</td><td><code>sorted(nums)</code>, 응용④에서 만드는 <code>result</code></td></tr>
+      <tr><td>두 입력을 합친 만큼의 새 자료구조</td><td class="mu">O(N+M)</td><td>응용④ <code>merge_sorted(a, b)</code></td></tr>
+      <tr><td>재귀 호출이 쌓아올리는 호출 스택</td><td class="mu">O(호출 깊이)</td><td>아직 다루지 않음 — 7주차 트리 재귀에서 본격적으로 등장</td></tr>
+    </table>
+
+    <div class="warnbox">
+      <p class="wtitle">⚠️ 공간 복잡도를 따질 때 자주 놓치는 것들</p>
+      <ol>
+        <li><b>입력 자체는 보통 세지 않는다(추가 공간 기준).</b> "이 알고리즘의 공간 복잡도는 O(N)"이라고 할 때, 대개는 함수가 넘겨받은 입력 배열 자체가 아니라 <b>그 외에 추가로 사용한</b> 메모리만 셉니다. 입력까지 포함하면 거의 모든 알고리즘이 최소 O(N)이 되어버려 서로 비교하는 의미가 없어지기 때문입니다.</li>
+        <li><b>시간이 좋다고 공간도 좋은 건 아니다 — 완전히 독립적인 두 축이다.</b> 응용④ <code>merge_sorted</code>는 시간 O(N+M)으로 훌륭하지만, 새 리스트 <code>result</code>를 만들기 때문에 공간도 O(N+M)입니다. 반면 응용② <code>remove_duplicates</code>는 시간 O(N)이면서 공간은 O(1)입니다(제자리 수정). 둘은 따로따로 분석해야 합니다.</li>
+        <li><b>파이썬 슬라이싱은 공짜가 아니다.</b> 응용④에서 썼던 <code>a[i:]</code>, <code>b[j:]</code> 같은 슬라이싱은 그 부분을 "가리키기만" 하는 게 아니라 <b>새로운 리스트를 통째로 복사</b>합니다. 즉 <code>a[i:]</code> 한 줄만으로도 그 자체로 O(len(a)-i)만큼의 시간과 공간을 씁니다. 겉보기에 간단해 보이는 코드도 공짜가 아니라는 걸 기억하세요.</li>
+        <li><b>재귀는 숨어있는 공간 비용이 있다.</b> 함수가 스스로를 N번 호출하는 재귀라면, 가장 안쪽 호출이 끝나기 전까지 N개의 호출이 스택에 계속 쌓여 있어야 하므로 O(N)의 추가 공간이 필요합니다. 반복문으로 짠 코드와 똑같은 결과를 내더라도, 재귀는 이 숨은 비용을 항상 동반합니다.</li>
+        <li><b>"in-place(제자리에서)"의 정확한 뜻은 "추가 공간 O(1)"이다.</b> 응용②가 "추가 배열을 만들면 안 된다"고 했던 이유가 바로 이것입니다 — 입력 배열 자체를 답으로 재활용해서 별도의 메모리를 아끼는 것이 in-place의 핵심입니다.</li>
+      </ol>
+    </div>
+
+    <div class="predict">
+      <div class="q">🔎 직접 분류해보기 — 이번 주에 작성한 함수들의 공간 복잡도는?</div>
+      <button class="btn" onclick="toggleReveal('rSpace')">정답 확인</button>
+      <div class="reveal-panel" id="rSpace-panel">
+        <table class="compare-table" style="margin-top:0;">
+          <tr><th>함수</th><th>공간 복잡도</th><th>이유</th></tr>
+          <tr><td><code>max_min_gap</code> (응용①)</td><td class="im">O(1)</td><td><code>hi</code>, <code>lo</code> 변수 두 개만 사용</td></tr>
+          <tr><td><code>remove_duplicates</code> (응용②)</td><td class="im">O(1)</td><td>입력 배열을 그대로 재활용(in-place), 추가 리스트 없음</td></tr>
+          <tr><td><code>is_palindrome</code> (응용③)</td><td class="im">O(1)</td><td><code>left</code>, <code>right</code> 인덱스만 사용</td></tr>
+          <tr><td><code>merge_sorted</code> (응용④)</td><td class="mu">O(N+M)</td><td>새 리스트 <code>result</code>에 모든 원소를 담음</td></tr>
+          <tr><td><code>max_area</code> (응용⑤)</td><td class="im">O(1)</td><td><code>left</code>, <code>right</code>, <code>best</code> 변수만 사용</td></tr>
+          <tr><td><code>two_sum_sorted</code> (실습②)</td><td class="im">O(1)</td><td><code>left</code>, <code>right</code> 인덱스만 사용</td></tr>
+        </table>
+        <p style="margin:10px 0 0;">패턴이 보이시나요? <b>투 포인터 기법은 대부분 O(1) 공간</b>으로 끝납니다 — 새 자료구조를 만들지 않고 인덱스 몇 개만 움직이기 때문입니다. 반면 <b>두 결과를 하나로 합치는(merge) 유형</b>은 결과를 담을 새 공간이 필요해서 O(N) 이상이 되는 경우가 많습니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="activity1" aria-labelledby="a1-h">
+  <div class="section-head">
+    <span class="section-kicker">실습 01 · 성취기준 직결</span>
+    <h2 id="a1-h">list 연산별 성능 벤치마크</h2>
+  </div>
+  <div class="card activity">
+    <p style="font-size:14.5px;">목표: <b>append(끝 삽입) vs insert(0, x)(앞 삽입)</b>의 실행 시간을 직접 측정해서, 이론 곡선과 실측 곡선이 실제로 일치하는지 검증합니다.</p>
+    <p style="font-size:14px; color:var(--ink-soft);"><code>time.perf_counter()</code>는 코드의 실행 시간을 측정할 때 쓰는 파이썬 표준 함수입니다. 호출한 순간의 시각을 아주 정밀한 단위(초 단위, 소수점 이하 나노초 수준)로 돌려주는데, <b>절대적인 시각 자체는 의미가 없고</b> 두 시점의 차이만 의미가 있습니다. 그래서 항상 아래처럼 "측정 시작 전에 한 번, 끝난 직후에 한 번" 호출해서 그 차이를 구하는 방식으로 씁니다.</p>
+    <pre><span class="kw">start</span> = time.perf_counter()
+<span class="c1"># ... 시간을 재고 싶은 코드 ...</span>
+<span class="kw">elapsed</span> = time.perf_counter() - start   <span class="c1"># 걸린 시간(초)</span></pre>
+    <p style="font-size:14px; color:var(--ink-soft);">비슷한 함수로 <code>time.time()</code>도 있지만, <code>time.time()</code>은 시스템 시계(사용자가 시간을 바꾸면 값이 튈 수 있음)를 기준으로 하는 반면 <code>time.perf_counter()</code>는 그런 영향을 받지 않는 <b>단조 증가(monotonic) 시계</b>라서, 짧은 코드의 실행 시간을 정밀하게 벤치마크할 때는 항상 이쪽을 씁니다.</p>
+    <pre><span class="kw">import</span> time
+
+<span class="kw">def</span> <span class="fn">bench_append</span>(n):
+    lst = []
+    start = time.perf_counter()
+    <span class="kw">for</span> i <span class="kw">in</span> range(n):
+        lst.append(i)
+    <span class="kw">return</span> time.perf_counter() - start
+
+<span class="kw">def</span> <span class="fn">bench_insert_front</span>(n):
+    lst = []
+    start = time.perf_counter()
+    <span class="kw">for</span> i <span class="kw">in</span> range(n):
+        lst.insert(<span class="st">0</span>, i)  <span class="c1"># 항상 맨 앞에 삽입</span>
+    <span class="kw">return</span> time.perf_counter() - start
+
+<span class="kw">for</span> n <span class="kw">in</span> [1000, 2000, 4000, 8000, 16000]:
+    <span class="fn">print</span>(n, <span class="fn">bench_append</span>(n), <span class="fn">bench_insert_front</span>(n))</pre>
+    <ol>
+      <li>위 코드를 그대로 실행하고, n이 두 배가 될 때마다 각 함수의 실행 시간이 <b>몇 배</b>로 느는지 표로 기록하세요.</li>
+      <li><code>bench_append</code>의 시간은 n에 거의 비례해서 늘어나는데(선형), <code>bench_insert_front</code>는 훨씬 가파르게 늘어나는 이유를 "책장 비유"로 설명해 보세요.</li>
+      <li>도전: <code>collections.deque</code>로 같은 실험을 반복하면 <code>appendleft</code>의 시간이 어떻게 달라질까요? 직접 실행해서 확인하세요.</li>
+    </ol>
+
+    <div class="predict">
+      <div class="q">🔎 막힐 때 예시 코드 보기</div>
+      <button class="btn" onclick="toggleReveal('rDeque')">예시 코드 확인</button>
+      <div class="reveal-panel" id="rDeque-panel">
+        <pre style="margin:10px 0 0;"><span class="kw">import</span> time
+<span class="kw">from</span> collections <span class="kw">import</span> deque
+
+<span class="kw">def</span> <span class="fn">bench_deque_appendleft</span>(n):
+    dq = deque()
+    start = time.perf_counter()
+    <span class="kw">for</span> i <span class="kw">in</span> range(n):
+        dq.appendleft(i)
+    <span class="kw">return</span> time.perf_counter() - start
+
+ns = [1000, 2000, 4000, 8000, 16000]
+prev_time = <span class="kw">None</span>
+
+<span class="kw">for</span> n <span class="kw">in</span> ns:
+    t = <span class="fn">bench_deque_appendleft</span>(n)
+    <span class="kw">if</span> prev_time <span class="kw">is</span> <span class="kw">None</span>:
+        <span class="fn">print</span>(f<span class="st">"{n:>8}   {t:.6f}s   (기준)"</span>)
+    <span class="kw">else</span>:
+        ratio = t / prev_time
+        <span class="fn">print</span>(f<span class="st">"{n:>8}   {t:.6f}s   {ratio:.2f}배"</span>)
+    prev_time = t</pre>
+        <p style="margin:10px 0 0; font-size:14px;">시간 자체보다 <b>직전 n 대비 몇 배가 됐는지(ratio)</b>를 같이 찍어보면 훨씬 비교하기 쉽습니다. 실행해 보면 <code>list.insert(0, x)</code>와 달리 <code>deque.appendleft</code>는 n이 두 배가 될 때 ratio가 대략 <b>2배 근처</b>에 머무는 걸 확인할 수 있습니다(선형, O(N)). <code>deque</code>는 내부적으로 <b>양쪽 끝 모두에서 O(1)</b>로 추가·제거가 가능하도록 설계된 이중 연결 구조이기 때문입니다 — "책장" 비유로 치면, 양쪽 끝에 모두 문이 달려있어서 앞쪽에 꽂을 때도 뒤의 책들을 밀 필요가 없는 구조라고 생각하면 됩니다. 반면 <code>deque</code>는 리스트처럼 인덱스로 중간 원소에 바로 접근(<code>dq[i]</code>)하는 건 O(N)이라는 트레이드오프가 있습니다.</p>
+      </div>
+    </div>
+
+    <div class="chartbox">
+      <p style="font-weight:600; margin:0 0 4px;">📊 내가 측정한 결과를 그래프로 그려보기</p>
+      <p style="font-size:13.5px; color:var(--ink-soft); margin:0 0 14px;">위 코드를 실행하면 터미널에 <code>n append시간 insert시간</code> 형태로 결과가 출력됩니다. 그 출력을 통째로 복사해서 아래 상자에 붙여넣으면 표와 그래프가 자동으로 채워집니다. 표를 직접 손으로 수정하거나 행을 추가·삭제할 수도 있습니다.</p>
+
+      <textarea id="pasteArea" class="paste-area" placeholder="예: 1000 3.7375e-05 0.00027263&#10;2000 6.6e-05 0.00100417&#10;4000 0.00013188 0.00364808&#10;...(print() 출력 결과를 그대로 붙여넣으세요)"></textarea>
+      <div style="display:flex; gap:10px; margin:10px 0 18px;">
+        <button class="btn primary" onclick="parsePaste()">붙여넣은 값 자동 입력</button>
+        <button class="btn" onclick="fillSampleData()">예시 값으로 채우기</button>
+        <button class="btn" onclick="addRow()">+ 행 추가</button>
+      </div>
+
+      <div class="chart-input-grid">
+        <div class="chart-input-row chart-input-head">
+          <span>n</span><span>append 시간(초)</span><span>insert_front 시간(초)</span><span></span>
+        </div>
+        <div id="chartRows"></div>
+      </div>
+
+      <svg id="benchChart" viewBox="0 0 640 360" style="width:100%; height:auto; background:var(--surface-2); border:1px solid var(--line); border-radius:10px; margin-top:14px;"></svg>
+      <div class="chart-legend">
+        <span><i style="background:var(--ref);"></i> append (예상: O(n), 직선에 가까움)</span>
+        <span><i style="background:var(--mutable);"></i> insert_front (예상: O(n²), 포물선에 가까움)</span>
+      </div>
+    </div>
+
+    <div class="predict">
+      <div class="q">막힐 때 힌트 보기</div>
+      <button class="btn" onclick="toggleReveal('r3')">힌트 확인</button>
+      <div class="reveal-panel" id="r3-panel">
+        <code>bench_insert_front(n)</code>은 사실 O(N²) 전체 루프입니다(매 삽입이 O(N)이고 이걸 n번 반복). n을 2배로 늘리면 이론상 시간은 <b>4배</b>가 되어야 합니다. 실측값이 4배에 가깝게 나오는지 확인해보세요.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="activity2" aria-labelledby="a2-h">
+  <div class="section-head">
+    <span class="section-kicker">실습 02 · 성취기준 직결</span>
+    <h2 id="a2-h">투 포인터(Two-Pointers) — 정렬된 배열에서 O(N²) 탈출하기</h2>
+  </div>
+  <div class="card activity">
+    <p style="font-size:14.5px;">핵심 아이디어: <b>이미 정렬되어 있다</b>는 정보를 활용하면, 양 끝에서 포인터 두 개를 동시에 움직여 모든 쌍을 확인하지 않고도 정답을 찾을 수 있습니다.</p>
+    <div class="qbox" style="font-size:15px;">문제: 정렬된 배열 <code>nums</code>와 목표값 <code>target</code>이 주어질 때, 합이 target이 되는 두 수의 인덱스를 찾아라.</div>
+    <p style="font-size:14.5px;">브루트포스(이중 for문)로 풀면 O(N²)입니다. 아래 뼈대 코드의 빈칸을 채워 O(N)으로 해결하세요.</p>
+
+    <div class="pseudocode">
+      <p class="pc-title">알고리즘</p>
+      <ol>
+        <li>정렬된 배열의 <b>맨 왼쪽</b>과 <b>맨 오른쪽</b>에 포인터를 하나씩 놓는다.</li>
+        <li>두 포인터가 가리키는 두 수의 합을 구한다.</li>
+        <li>합이 목표값과 같으면 → 두 인덱스를 정답으로 반환하고 끝낸다.</li>
+        <li>합이 목표값보다 작으면 → 합을 더 키워야 하므로 <b>왼쪽 포인터를 오른쪽으로</b> 한 칸 옮긴다.</li>
+        <li>합이 목표값보다 크면 → 합을 더 줄여야 하므로 <b>오른쪽 포인터를 왼쪽으로</b> 한 칸 옮긴다.</li>
+        <li>두 포인터가 서로 만날 때까지 2~5를 반복한다. 만나도록 값을 못 찾았다면 정답이 없다는 뜻이다.</li>
+      </ol>
+    </div>
+
+    <pre><span class="kw">def</span> <span class="fn">two_sum_sorted</span>(nums, target):
+    left, right = 0, len(nums) - 1
+    <span class="kw">while</span> left &lt; right:
+        current = nums[left] + nums[right]
+        <span class="kw">if</span> current == target:
+            <span class="kw">return</span> (left, right)
+        <span class="kw">elif</span> current &lt; target:
+            ____ <span class="c1"># 힌트: 합을 더 키우려면 어느 포인터를 움직여야 할까?</span>
+        <span class="kw">else</span>:
+            ____ <span class="c1"># 힌트: 합을 더 줄이려면?</span>
+    <span class="kw">return</span> <span class="kw">None</span></pre>
+    <ol>
+      <li>빈칸 두 줄을 채워 함수를 완성하세요.</li>
+      <li><code>nums = [2, 7, 11, 15], target = 18</code>로 손으로 트레이싱(각 반복에서 left, right, current 값을 표로 적기)해 보세요.</li>
+      <li>이 알고리즘이 왜 O(N)인지, "포인터가 서로를 향해 최대 N번만 이동한다"는 관점에서 한 문장으로 설명해 보세요.</li>
+    </ol>
+    <div class="predict">
+      <div class="q">🔎 정답 확인하기</div>
+      <button class="btn" onclick="toggleReveal('r4')">정답 보기</button>
+      <div class="reveal-panel" id="r4-panel">
+        <code>current &lt; target</code>일 때는 합을 키워야 하므로 <code>left += 1</code>, <code>current &gt; target</code>일 때는 합을 줄여야 하므로 <code>right -= 1</code> 입니다.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="activity3" aria-labelledby="a3-h">
+  <div class="section-head">
+    <span class="section-kicker">실습 03 · 응용 문제 5선</span>
+    <h2 id="a3-h">배열 복잡도 &amp; 투 포인터 응용 문제</h2>
+    <p style="color:var(--ink-soft); font-size:14.5px;">지금까지 배운 배열의 복잡도 감각과 투 포인터 기법을 실제 문제에 적용해 보는 5문제입니다. 먼저 스스로 풀어본 뒤 힌트와 정답을 확인하세요.</p>
+  </div>
+
+  <div class="card activity" style="margin-bottom:16px;">
+    <p style="font-weight:600; margin-bottom:6px;">응용 ① — 최댓값과 최솟값의 차이 (O(N) 감각 확인)</p>
+    <p style="font-size:14.5px;">정렬되지 않은 리스트 <code>nums</code>에서 최댓값과 최솟값의 차이를 구하는 함수를 작성하세요. <b>단, 정렬을 사용하지 말고</b> O(N)에 풀어야 합니다.</p>
+
+    <div class="pseudocode">
+      <p class="pc-title">알고리즘</p>
+      <ol>
+        <li>리스트의 첫 번째 값을 일단 "지금까지의 최댓값"이자 "지금까지의 최솟값"으로 정해둔다.</li>
+        <li>두 번째 값부터 끝까지, 리스트를 <b>한 번만</b> 순서대로 훑는다.</li>
+        <li>지금 보는 값이 지금까지의 최댓값보다 크면, 최댓값을 그 값으로 갱신한다.</li>
+        <li>지금 보는 값이 지금까지의 최솟값보다 작으면, 최솟값을 그 값으로 갱신한다.</li>
+        <li>다 훑고 나면 (최댓값 − 최솟값)을 반환한다.</li>
+      </ol>
+    </div>
+
+    <pre><span class="kw">def</span> <span class="fn">max_min_gap</span>(nums):
+    <span class="c1"># sorted(nums)를 쓰면 O(N log N)이 됩니다. 정렬 없이 O(N)으로 푸세요.</span>
+    ____</pre>
+    <div class="predict">
+      <div class="q">🔎 힌트</div>
+      <button class="btn" onclick="toggleReveal('p1')">힌트 및 정답 확인</button>
+      <div class="reveal-panel" id="p1-panel">
+        리스트를 <b>한 번만</b> 순회하면서 지금까지 본 값 중 최댓값과 최솟값을 각각 변수에 갱신하면 됩니다.
+        <pre style="margin-top:10px;"><span class="kw">def</span> <span class="fn">max_min_gap</span>(nums):
+    hi, lo = nums[0], nums[0]
+    <span class="kw">for</span> x <span class="kw">in</span> nums[1:]:
+        hi = max(hi, x)
+        lo = min(lo, x)
+    <span class="kw">return</span> hi - lo</pre>
+        <code>sorted()</code>를 쓰면 O(N log N)이지만, 이 방법은 리스트를 딱 한 번만 훑으므로 O(N)입니다. "정렬해서 양 끝을 본다"는 접근이 항상 최선은 아니라는 걸 보여주는 예시입니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="card activity" style="margin-bottom:16px;">
+    <p style="font-weight:600; margin-bottom:6px;">응용 ② — 정렬된 배열에서 중복 제거 (투 포인터: 느린/빠른 포인터)</p>
+    <p style="font-size:14.5px;">이미 정렬된 배열 <code>nums</code>에서 중복된 값을 제자리(in-place)에서 제거하고, 남은 고유한 원소의 개수를 반환하세요. 추가 배열을 만들면 안 됩니다.</p>
+
+    <div class="pseudocode">
+      <p class="pc-title">알고리즘</p>
+      <ol>
+        <li>배열이 비어있으면 그냥 0을 반환하고 끝낸다.</li>
+        <li>"지금까지 확정된 고유값들의 마지막 위치"를 가리키는 <b>slow</b>를 0으로 시작한다.</li>
+        <li>"새로운 값을 찾아 나서는" <b>fast</b>를 1번 인덱스부터 끝까지 한 칸씩 옮기며 확인한다.</li>
+        <li>fast가 가리키는 값이 slow가 가리키는 값과 <b>다르면</b>: 새로운 고유값을 찾은 것이므로 slow를 한 칸 옮기고, 그 자리에 fast가 가리키는 값을 옮겨 적는다.</li>
+        <li>fast가 가리키는 값이 slow가 가리키는 값과 <b>같으면</b>(중복이면): 아무것도 하지 않고 fast만 계속 전진시킨다.</li>
+        <li>fast가 끝까지 다 돌면, (slow + 1)이 곧 고유한 원소의 개수다.</li>
+      </ol>
+    </div>
+
+    <pre><span class="kw">def</span> <span class="fn">remove_duplicates</span>(nums):
+    <span class="kw">if</span> <span class="kw">not</span> nums:
+        <span class="kw">return</span> 0
+    slow = 0
+    <span class="kw">for</span> fast <span class="kw">in</span> range(1, len(nums)):
+        <span class="kw">if</span> nums[fast] != nums[slow]:
+            ____ <span class="c1"># 힌트: slow를 어떻게 옮기고, 어떤 값을 대입해야 할까?</span>
+    <span class="kw">return</span> slow + 1</pre>
+
+    <div class="dup-diagram">
+      <p style="font-weight:600; font-size:13.5px; margin:0 0 12px; color:var(--ink-soft);">🔍 직접 확인하기 — <code>nums = [1, 1, 2, 3, 3, 3, 4]</code>일 때 slow/fast가 이렇게 움직입니다</p>
+      <div class="dup-array" id="dupArray"></div>
+      <div class="dup-pointer-row" id="dupPointers"></div>
+      <div class="dup-caption" id="dupCaption"></div>
+      <div class="dup-controls">
+        <button class="btn" onclick="dupStep(-1)">← 이전</button>
+        <span class="dup-step-indicator" id="dupStepIndicator">1 / 11</span>
+        <button class="btn primary" onclick="dupStep(1)">다음 →</button>
+      </div>
+    </div>
+
+    <div class="predict">
+      <div class="q">🔎 힌트 및 정답</div>
+      <button class="btn" onclick="toggleReveal('p2')">확인하기</button>
+      <div class="reveal-panel" id="p2-panel">
+        <code>slow += 1; nums[slow] = nums[fast]</code>가 정답입니다. <b>slow</b>는 "지금까지 확정된 고유 원소들의 끝 위치"를, <b>fast</b>는 "새로운 값을 찾는 탐색 위치"를 가리킵니다. 두 포인터가 같은 방향으로 서로 다른 속도로 움직인다는 점에서 실습②의 "양 끝에서 마주보는" 투 포인터와는 다른 변형이지만, 원리(두 개의 인덱스로 한 번의 순회에서 문제를 해결)는 같습니다. 전체 시간 복잡도는 O(N)입니다.
+      </div>
+    </div>
+
+    <div class="predict">
+      <div class="q">🔎 그런데 왜 배열이 아니라 개수(정수)를 반환할까? — 실제 호출 예시로 확인하기</div>
+      <button class="btn" onclick="toggleReveal('p2full')">완전한 코드 보기</button>
+      <div class="reveal-panel" id="p2full-panel">
+        <p style="margin:0 0 10px;">이 문제는 "제자리(in-place)"에서 수정하는 것이 조건이므로, 함수가 <b>새 배열을 만들어 반환하지 않고</b> 원본 <code>nums</code>를 직접 바꿔버립니다. 그래서 반환값은 "결과 배열"이 아니라 "결과가 몇 번째 인덱스까지인지"를 알려주는 개수(정수)입니다. 호출하는 쪽에서 그 개수를 이용해 실제 결과를 잘라내면 됩니다.</p>
+        <pre><span class="kw">def</span> <span class="fn">remove_duplicates</span>(nums):
+    <span class="kw">if</span> <span class="kw">not</span> nums:
+        <span class="kw">return</span> 0
+    slow = 0
+    <span class="kw">for</span> fast <span class="kw">in</span> range(1, len(nums)):
+        <span class="kw">if</span> nums[fast] != nums[slow]:
+            slow += 1
+            nums[slow] = nums[fast]
+    <span class="kw">return</span> slow + 1
+
+<span class="c1"># ── 사용 예시 ──</span>
+nums = [1, 1, 2, 3, 3, 3, 4]
+k = <span class="fn">remove_duplicates</span>(nums)
+
+<span class="fn">print</span>(k)         <span class="c1"># 4                      ← 고유한 원소의 개수</span>
+<span class="fn">print</span>(nums[:k])  <span class="c1"># [1, 2, 3, 4]           ← 실제 고유값 (이게 진짜 결과!)</span>
+<span class="fn">print</span>(nums)      <span class="c1"># [1, 2, 3, 4, 3, 3, 4]  ← 원본 배열 전체 (k 이후는 의미 없는 값)</span></pre>
+        <p style="margin:10px 0 0;"><code>nums</code>는 함수 안에서 직접 수정되었으므로(참조를 통한 변경 — 1주차에서 배운 내용과 연결됩니다), 함수가 끝난 뒤에도 <code>nums</code> 자체가 바뀌어 있습니다. <code>nums[:k]</code>처럼 반환된 개수만큼 슬라이싱해야 비로소 "중복이 제거된 배열"을 얻을 수 있습니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card activity" style="margin-bottom:16px;">
+    <p style="font-weight:600; margin-bottom:6px;">응용 ③ — 회문(팰린드롬) 판별하기</p>
+    <p style="font-size:14.5px;">문자열 <code>s</code>가 회문(앞으로 읽으나 뒤로 읽으나 같은 문자열)인지 판별하는 함수를 O(N)에 작성하세요.</p>
+
+    <div class="pseudocode">
+      <p class="pc-title">알고리즘</p>
+      <ol>
+        <li>문자열의 맨 왼쪽과 맨 오른쪽에 포인터를 하나씩 놓는다.</li>
+        <li>두 포인터가 가리키는 글자가 서로 다르면 → 회문이 아니므로 즉시 False를 반환하고 끝낸다.</li>
+        <li>같으면 → 왼쪽 포인터는 오른쪽으로, 오른쪽 포인터는 왼쪽으로 한 칸씩 옮긴다.</li>
+        <li>두 포인터가 서로 만나거나 스쳐 지나갈 때까지 2~3을 반복한다.</li>
+        <li>끝까지 한 번도 다른 적이 없었다면 회문이므로 True를 반환한다.</li>
+      </ol>
+    </div>
+
+    <pre><span class="kw">def</span> <span class="fn">is_palindrome</span>(s):
+    left, right = 0, len(s) - 1
+    <span class="kw">while</span> left &lt; right:
+        <span class="kw">if</span> s[left] != s[right]:
+            <span class="kw">return</span> <span class="kw">False</span>
+        ____
+        ____
+    <span class="kw">return</span> <span class="kw">True</span></pre>
+    <div class="predict">
+      <div class="q">🔎 힌트 및 정답</div>
+      <button class="btn" onclick="toggleReveal('p3')">확인하기</button>
+      <div class="reveal-panel" id="p3-panel">
+        빈칸은 <code>left += 1</code>과 <code>right -= 1</code>입니다. 양 끝에서 서로를 향해 좁혀오는 전형적인 투 포인터 패턴입니다. 각 글자를 최대 한 번씩만 비교하므로 O(N)이며, <code>s == s[::-1]</code>처럼 문자열을 뒤집어 비교하는 방법(내부적으로 O(N) 복사가 한 번 더 발생)보다 추가 메모리를 쓰지 않는다는 장점이 있습니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="card activity" style="margin-bottom:16px;">
+    <p style="font-weight:600; margin-bottom:6px;">응용 ④ — 정렬된 두 배열 병합하기</p>
+    <p style="font-size:14.5px;">이미 정렬된 두 리스트 <code>a</code>, <code>b</code>를 하나의 정렬된 리스트로 합치는 함수를 O(N+M)에 작성하세요 (N, M은 각 리스트의 길이). 병합 정렬(Merge Sort)의 핵심 부품이기도 합니다.</p>
+
+    <div class="pseudocode">
+      <p class="pc-title">알고리즘</p>
+      <ol>
+        <li>결과를 담을 빈 리스트를 하나 만들고, <code>a</code>와 <code>b</code>를 각각 가리킬 포인터 i, j를 0으로 시작한다.</li>
+        <li>두 포인터가 아직 각자 배열의 끝에 도달하지 않은 동안 반복한다.</li>
+        <li>두 포인터가 가리키는 값을 비교해서, <b>더 작은 쪽</b>을 결과 리스트 끝에 담고 그 포인터만 한 칸 전진시킨다.</li>
+        <li>둘 중 한쪽 배열이 먼저 끝나면 반복을 멈춘다.</li>
+        <li>아직 남아있는(끝나지 않은) 배열의 나머지 부분을, 비교 없이 그대로 결과 리스트 뒤에 통째로 이어 붙인다 — 이미 정렬되어 있으므로 안전하다.</li>
+      </ol>
+    </div>
+
+    <pre><span class="kw">def</span> <span class="fn">merge_sorted</span>(a, b):
+    result = []
+    i = j = 0
+    <span class="kw">while</span> i &lt; len(a) <span class="kw">and</span> j &lt; len(b):
+        <span class="kw">if</span> a[i] &lt;= b[j]:
+            result.append(a[i]); i += 1
+        <span class="kw">else</span>:
+            ____ <span class="c1"># 힌트: b쪽 원소를 담고, j를 옮긴다</span>
+    result.extend(a[i:])
+    result.extend(b[j:])
+    <span class="kw">return</span> result</pre>
+    <p style="font-size:14px; color:var(--ink-soft);">while 루프는 <code>a</code>와 <code>b</code> 중 <b>어느 한쪽이 먼저 바닥나는 순간</b> 끝납니다. 이때 아직 남아있는 배열은 이미 정렬되어 있으므로, 남은 부분을 통째로 <code>result</code> 뒤에 이어 붙이기만 하면 됩니다 — 이게 <code>result.extend(a[i:])</code>와 <code>result.extend(b[j:])</code>가 하는 일입니다. <code>a[i:]</code>는 "인덱스 i부터 끝까지"를 의미하므로, 만약 <code>a</code>가 이미 다 소진됐다면(<code>i == len(a)</code>) <code>a[i:]</code>는 빈 리스트가 되어 아무 일도 일어나지 않습니다. 즉 <b>두 줄 중 실제로 무언가를 추가하는 건 항상 둘 중 하나뿐</b>이며, 어느 쪽이 남았는지 따로 if문으로 검사할 필요 없이 슬라이싱이 자동으로 처리해 줍니다.</p>
+    <div class="predict">
+      <div class="q">🔎 힌트 및 정답</div>
+      <button class="btn" onclick="toggleReveal('p4')">확인하기</button>
+      <div class="reveal-panel" id="p4-panel">
+        빈칸은 <code>result.append(b[j]); j += 1</code>입니다. 두 포인터 <code>i</code>, <code>j</code>가 각자의 배열에서 한 방향으로만 전진하며 서로 비교하는 것도 투 포인터의 한 형태입니다. 각 포인터는 자기 배열을 한 번씩만 훑으므로 전체는 O(N+M)이며, 브루트포스로 합친 뒤 다시 정렬하면 O((N+M) log(N+M))이 되므로 훨씬 비효율적입니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="card activity">
+    <p style="font-weight:600; margin-bottom:6px;">응용 ⑤ — 가장 많은 물을 담는 용기 (심화: 포인터를 어느 쪽으로 옮길지 판단하기)</p>
+    <p style="font-size:14.5px;">높이가 <code>height</code> 배열로 주어진 여러 개의 세로 막대가 있습니다. 두 막대를 골라 그 사이에 물을 채울 때, <b>담을 수 있는 물의 최대 넓이</b>(두 막대 사이 거리 × 더 낮은 막대의 높이)를 구하세요. 브루트포스로는 O(N²)이지만, 투 포인터로 O(N)에 풀 수 있습니다.</p>
+
+    <div class="water-viz">
+      <p style="font-weight:600; font-size:13.5px; margin:0 0 10px; color:var(--ink-soft);">🔍 문제 상황 직접 확인하기 — 슬라이더로 두 막대를 골라보세요</p>
+      <div class="water-controls">
+        <label>왼쪽 막대(left) 인덱스
+          <input type="range" id="waterLeft" min="0" max="8" value="0">
+        </label>
+        <label>오른쪽 막대(right) 인덱스
+          <input type="range" id="waterRight" min="0" max="8" value="8">
+        </label>
+        <button class="btn" onclick="showOptimalWater()">이 예시의 정답 위치 보기</button>
+      </div>
+      <svg id="waterSvg" viewBox="0 0 460 220" style="width:100%; height:auto; background:var(--surface); border:1px solid var(--line); border-radius:10px;"></svg>
+      <div class="water-caption" id="waterCaption"></div>
+    </div>
+
+    <div class="pseudocode">
+      <p class="pc-title">알고리즘</p>
+      <ol>
+        <li>가장 멀리 떨어진 두 막대(맨 왼쪽과 맨 오른쪽)에서 시작한다.</li>
+        <li>지금 선택한 두 막대 사이에 담을 수 있는 물의 넓이(폭 × 더 낮은 막대의 높이)를 계산하고, 지금까지 찾은 최댓값과 비교해서 더 크면 갱신한다.</li>
+        <li>둘 중 <b>더 낮은 막대</b>가 물의 높이를 제한하고 있으므로, 더 낮은 쪽 포인터를 안쪽으로 한 칸 옮긴다(더 높은 막대를 만나 넓이가 커질 가능성을 만들기 위해).</li>
+        <li>두 포인터가 서로 만날 때까지 2~3을 반복한다.</li>
+        <li>지금까지 찾은 최댓값을 반환한다.</li>
+      </ol>
+    </div>
+
+    <pre><span class="kw">def</span> <span class="fn">max_area</span>(height):
+    left, right = 0, len(height) - 1
+    best = 0
+    <span class="kw">while</span> left &lt; right:
+        width = right - left
+        best = max(best, width * min(height[left], height[right]))
+        <span class="kw">if</span> height[left] &lt; height[right]:
+            ____ <span class="c1"># 힌트: 어느 쪽이 물의 높이를 제한하고 있나?</span>
+        <span class="kw">else</span>:
+            ____
+    <span class="kw">return</span> best</pre>
+    <div class="predict">
+      <div class="q">🔎 힌트 및 정답 — 왜 "더 낮은 쪽"을 옮겨야 할까요?</div>
+      <button class="btn" onclick="toggleReveal('p5')">확인하기</button>
+      <div class="reveal-panel" id="p5-panel">
+        빈칸은 각각 <code>left += 1</code>, <code>right -= 1</code>입니다. 물의 높이는 항상 <b>더 낮은 막대</b>가 결정하므로, 두 막대 중 더 짧은 쪽을 그대로 두면 폭만 줄어들 뿐 넓이가 커질 가능성이 없습니다. 반면 더 짧은 쪽을 안쪽으로 옮기면 "혹시 더 높은 막대를 만나 넓이가 커질" 가능성이 생깁니다. 이렇게 <b>매 순간 어느 쪽 포인터를 옮길지 논리적으로 판단</b>하는 것이 실습②의 단순한 "합 비교"보다 한 단계 더 나아간 투 포인터 활용입니다.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="assessment" aria-labelledby="assessment-h">
+  <div class="section-head">
+    <span class="section-kicker">통합 과제 · 실습①~③ 종합</span>
+    <h2 id="assessment-h">이번 주 학습 확인 — 1시간 통합 과제</h2>
+    <p style="color:var(--ink-soft); font-size:14.5px;">지금까지 배운 점근적 표기법, 배열의 시간·공간 복잡도, 투 포인터 기법을 종합적으로 적용하는 3문제입니다. 각 문제에 예상 소요 시간을 표시해 두었으니 시간을 재며 풀어보세요. 정답과 해설은 아래에서 비밀번호 확인 후 파일로 받을 수 있습니다.</p>
+  </div>
+
+  <div class="card problem-card" style="margin-bottom:16px;">
+    <span class="ptime">⏱ 약 15분</span>
+    <p style="font-weight:600; margin-bottom:8px;">문제 1 — 복잡도 분석</p>
+    <p style="font-size:14.5px;">아래 함수의 <b>시간 복잡도</b>와 <b>공간 복잡도</b>를 각각 구하고, 그렇게 판단한 근거를 서술하시오.</p>
+    <pre><span class="kw">def</span> <span class="fn">build_pairs</span>(nums):
+    result = []
+    <span class="kw">for</span> i <span class="kw">in</span> range(len(nums)):
+        <span class="kw">for</span> j <span class="kw">in</span> range(i + 1, len(nums)):
+            <span class="kw">if</span> nums[i] + nums[j] == 0:
+                result.append((nums[i], nums[j]))
+    <span class="kw">return</span> result</pre>
+  </div>
+
+  <div class="card problem-card" style="margin-bottom:16px;">
+    <span class="ptime">⏱ 약 25분</span>
+    <p style="font-weight:600; margin-bottom:8px;">문제 2 — 코딩: 정렬된 배열의 제곱을 정렬된 순서로 반환하기</p>
+    <p style="font-size:14.5px;">오름차순으로 정렬된 정수 배열 <code>nums</code>가 주어진다(음수를 포함할 수 있다). 각 원소를 제곱한 값들을 <b>오름차순으로 정렬된 새 배열</b>로 반환하는 함수 <code>sorted_squares(nums)</code>를 작성하시오.</p>
+    <pre><span class="c1"># 예: nums = [-4, -1, 0, 3, 10] → [0, 1, 9, 16, 100]</span>
+<span class="kw">def</span> <span class="fn">sorted_squares</span>(nums):
+    ____</pre>
+    <ul style="padding-left:20px; font-size:14.5px; margin:0;">
+      <li><code>sorted()</code>를 쓰면 O(N log N)입니다. <b>투 포인터를 이용해 O(N)</b>에 푸세요.</li>
+      <li>완성 후 이 함수의 <b>시간 복잡도와 공간 복잡도</b>를 각각 서술하시오.</li>
+    </ul>
+  </div>
+
+  <div class="card problem-card">
+    <span class="ptime">⏱ 약 20분</span>
+    <p style="font-weight:600; margin-bottom:8px;">문제 3 — 트레이드오프 서술 + 벤치마크 코드</p>
+    <p style="font-size:14.5px;">아래 두 함수는 모두 리스트에서 중복된 값을 제거합니다.</p>
+    <pre><span class="kw">def</span> <span class="fn">dedup_new_list</span>(nums):        <span class="c1"># 방식 A: 새 리스트 + set 이용</span>
+    seen = set()
+    result = []
+    <span class="kw">for</span> x <span class="kw">in</span> nums:
+        <span class="kw">if</span> x <span class="kw">not in</span> seen:
+            seen.add(x)
+            result.append(x)
+    <span class="kw">return</span> result
+
+<span class="kw">def</span> <span class="fn">dedup_inplace</span>(nums):         <span class="c1"># 방식 B: 응용②의 투 포인터 (정렬된 배열 전제)</span>
+    <span class="kw">if</span> <span class="kw">not</span> nums:
+        <span class="kw">return</span> 0
+    slow = 0
+    <span class="kw">for</span> fast <span class="kw">in</span> range(1, len(nums)):
+        <span class="kw">if</span> nums[fast] != nums[slow]:
+            slow += 1
+            nums[slow] = nums[fast]
+    <span class="kw">return</span> slow + 1</pre>
+    <ol style="padding-left:20px; font-size:14.5px; margin:0;">
+      <li>두 함수의 시간 복잡도와 공간 복잡도를 각각 구하시오.</li>
+      <li>어떤 상황에서 방식 A를, 어떤 상황에서 방식 B를 선택해야 하는지 <b>시간-공간 트레이드오프</b> 관점에서 서술하시오.</li>
+      <li><code>time.perf_counter()</code>를 이용해 두 함수의 실행시간을 비교하는 벤치마크 코드를 작성하시오.</li>
+    </ol>
+  </div>
+
+  <div class="gate-box" style="margin-top:20px;">
+    <p style="font-weight:600; margin:0 0 6px;">🔒 정답 및 해설 다운로드</p>
+    <p style="font-size:13.5px; color:var(--ink-soft); margin:0 0 14px;">교사에게 받은 비밀번호를 입력하면 정답·해설이 담긴 파일이 자동으로 다운로드됩니다. 이 페이지의 소스코드에는 암호화된 데이터만 들어있어, 비밀번호 없이는 내용을 볼 수 없습니다.</p>
+    <div class="gate-row">
+      <input type="password" id="gatePassword" placeholder="비밀번호 입력" autocomplete="off">
+      <button class="btn primary" id="gateBtn" onclick="unlockAnswer()">정답 파일 받기</button>
+    </div>
+    <div class="gate-status" id="gateStatus"></div>
+  </div>
+</section>
+
+<section id="quiz" aria-labelledby="quiz-h">
+  <div class="section-head">
+    <span class="section-kicker">확인 학습</span>
+    <h2 id="quiz-h">10문항으로 이해도 점검하기</h2>
+  </div>
+  <div id="quiz-container"></div>
+  <div class="quiz-score" id="quiz-score" style="display:none;">
+    <div>이번 회차 점수</div>
+    <div class="num" id="quiz-score-num">0 / 10</div>
+    <button class="btn" style="background:transparent;border-color:#fff;color:#fff;" onclick="resetQuiz()">다시 풀기</button>
+  </div>
+</section>
+
+<section id="check" aria-labelledby="check-h">
+  <div class="section-head">
+    <span class="section-kicker">자가진단</span>
+    <h2 id="check-h">이번 주 성취기준에 도달했나요?</h2>
+  </div>
+  <div class="card">
+    <div class="checklist" id="checklist">
+      <div class="check-row">
+        <input type="checkbox" id="chk1" onchange="updateProgress()">
+        <label for="chk1">Big-O, Big-Ω, Big-Θ 세 표기법이 각각 무엇(최악·최선·근사)을 나타내는지 구분해서 설명할 수 있다.</label>
+      </div>
+      <div class="check-row">
+        <input type="checkbox" id="chk2" onchange="updateProgress()">
+        <label for="chk2"><code>list.append(x)</code>가 대부분 O(1)이지만 가끔 O(N)이 되는 이유(재할당)를 말로 설명할 수 있다.</label>
+      </div>
+      <div class="check-row">
+        <input type="checkbox" id="chk3" onchange="updateProgress()">
+        <label for="chk3"><code>list.insert(0, x)</code>가 왜 항상 O(N)인지 "메모리의 물리적 연속성" 개념으로 설명할 수 있다.</label>
+      </div>
+      <div class="check-row">
+        <input type="checkbox" id="chk4" onchange="updateProgress()">
+        <label for="chk4">정렬된 배열 위에서 투 포인터 기법으로 O(N²)을 O(N)으로 줄이는 코드를 스스로 작성할 수 있다.</label>
+      </div>
+      <div class="check-row">
+        <input type="checkbox" id="chk5" onchange="updateProgress()">
+        <label for="chk5">벤치마크 실습에서 얻은 실제 실행시간을 이론적 Big-O 곡선과 연결지어 해석할 수 있다.</label>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-text" id="progress-text">0 / 5 완료</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  15주 완성 파이썬 자료구조 및 알고리즘(DSA) 커리큘럼 · 2주차 학습자료 — 알고리즘 복잡도 분석과 동적 배열
+</footer>
+
+<script>
+  function toggleReveal(id){
+    document.getElementById(id+'-panel').classList.toggle('show');
+  }
+
+  /* ============ mystery(n) 세그먼트 시각화 ============ */
+  const mysteryColors = ['#0F7A73', '#2F4B7C', '#C9962B', '#B5502E', '#6B4C9A', '#0F7A73', '#2F4B7C', '#C9962B', '#B5502E', '#6B4C9A'];
+
+  function renderMystery(n){
+    document.getElementById('mysteryReadout').textContent = 'n = ' + n;
+    const segs = [];
+    let i = 1;
+    while (i < n){
+      segs.push(i);
+      i *= 2;
+    }
+    const total = segs.reduce((a, b) => a + b, 0);
+    const domain = Math.max(total, n);       // 막대 전체가 나타내는 기준 길이
+    const remainder = Math.max(0, n - total); // total이 n보다 작을 때만 존재
+    const nMarkerPct = (n / domain * 100).toFixed(2);
+
+    const track = document.getElementById('mysteryTrack');
+    const segHtml = segs.map((v, idx) => {
+      const pct = (v / domain * 100).toFixed(2);
+      const showLabel = v * (600/domain) > 16; // 너무 좁으면 라벨 생략
+      return `<div class="mystery-seg" style="width:${pct}%; background:${mysteryColors[idx % mysteryColors.length]};">${showLabel ? v : ''}</div>`;
+    }).join('');
+    const remainderHtml = remainder > 0
+      ? `<div class="mystery-seg remainder" style="width:${(remainder/domain*100).toFixed(2)}%;"></div>`
+      : '';
+    track.innerHTML = segHtml + remainderHtml;
+
+    const markerEl = document.getElementById('mysteryNMarker');
+    markerEl.style.left = nMarkerPct + '%';
+    markerEl.style.display = (total > n) ? 'block' : 'none'; // total<=n이면 n이 곧 오른쪽 끝이라 마커가 필요 없음
+
+    let scaleNote;
+    if (remainder > 0){
+      scaleNote = `색칠된 부분이 n의 <b>${(total/n*100).toFixed(1)}%</b>만 차지하고, 빗금 친 나머지 구간(${remainder}만큼)은 실제로 실행되지 않는 여분의 길이입니다.`;
+    } else if (total === n){
+      scaleNote = `색칠된 조각들의 합이 정확히 n과 같습니다 (n이 2의 거듭제곱일 때 생기는 경우입니다).`;
+    } else {
+      scaleNote = `조각들의 합(${total})이 오히려 n(${n})보다 <b>${(total/n).toFixed(2)}배</b> 큽니다 — 막대 위의 <span style="color:var(--mutable); font-weight:600;">┆ n 표시</span>가 실제 n의 위치입니다. n이 2의 거듭제곱이 아닐 때는 이렇게 합이 n을 넘어설 수 있습니다.`;
+    }
+
+    document.getElementById('mysteryCaption').innerHTML =
+      `바깥 루프는 <b>${segs.length}번</b>(log₂(${n}) ≈ ${segs.length}) 돌고, 안쪽 루프 반복 횟수는 순서대로 <span style="font-family:var(--mono);">${segs.join(' + ')}</span> = <b>${total}</b>번입니다. ${scaleNote} ` +
+      `중요한 건 정확히 n인지 2n에 가까운지가 아니라, <b>n이 아무리 커져도 합은 항상 n의 상수배(2배 미만)에 머문다</b>는 점입니다 — 그래서 이 함수는 n²이 아니라 <b>Θ(n)</b>입니다.`;
+  }
+
+  document.getElementById('mysterySlider').addEventListener('input', e => renderMystery(Number(e.target.value)));
+  renderMystery(Number(document.getElementById('mysterySlider').value));
+
+  /* ============ 응용⑤ 물통(container with most water) 시각화 ============ */
+  const waterHeights = [1, 8, 6, 2, 5, 4, 8, 3, 7];
+
+  function drawWater(changedId){
+    const leftEl = document.getElementById('waterLeft');
+    const rightEl = document.getElementById('waterRight');
+    let left = Number(leftEl.value);
+    let right = Number(rightEl.value);
+    if (left >= right){
+      // 항상 left < right가 되도록 보정
+      if (changedId === 'waterLeft'){ right = Math.min(waterHeights.length - 1, left + 1); rightEl.value = right; }
+      else { left = Math.max(0, right - 1); leftEl.value = left; }
+    }
+
+    const n = waterHeights.length;
+    const W = 460, H = 220, padX = 20, padTop = 24, padBottom = 34;
+    const plotW = W - padX * 2, plotH = H - padTop - padBottom;
+    const gap = 8;
+    const barW = (plotW - (n - 1) * gap) / n;
+    const maxH = Math.max(...waterHeights);
+    const baseline = padTop + plotH;
+    const xOf = idx => padX + idx * (barW + gap);
+    const hOf = v => (v / maxH) * plotH;
+
+    const h1 = waterHeights[left], h2 = waterHeights[right];
+    const minH = Math.min(h1, h2);
+    const width = right - left;
+    const area = width * minH;
+
+    let svg = '';
+    // 물 채워지는 영역 (막대 사이)
+    const waterX = xOf(left) + barW;
+    const waterW = Math.max(0, xOf(right) - waterX);
+    const waterY = baseline - hOf(minH);
+    svg += `<rect x="${waterX.toFixed(1)}" y="${waterY.toFixed(1)}" width="${waterW.toFixed(1)}" height="${hOf(minH).toFixed(1)}" fill="#2F4B7C" fill-opacity="0.18"></rect>`;
+    svg += `<line x1="${padX}" y1="${waterY.toFixed(1)}" x2="${W-padX}" y2="${waterY.toFixed(1)}" stroke="#2F4B7C" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6"></line>`;
+
+    // 막대
+    waterHeights.forEach((v, i) => {
+      const x = xOf(i), bh = hOf(v), y = baseline - bh;
+      const isLeft = i === left, isRight = i === right;
+      const fill = isLeft ? '#0F7A73' : isRight ? '#C9962B' : '#C9D2DE';
+      svg += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${bh.toFixed(1)}" fill="${fill}" rx="3"></rect>`;
+      svg += `<text x="${(x+barW/2).toFixed(1)}" y="${(y-6).toFixed(1)}" font-size="11" text-anchor="middle" fill="#4A5468" font-family="JetBrains Mono, monospace">${v}</text>`;
+      svg += `<text x="${(x+barW/2).toFixed(1)}" y="${(baseline+16).toFixed(1)}" font-size="10.5" text-anchor="middle" fill="${isLeft||isRight ? '#14181F' : '#7C8698'}" font-weight="${isLeft||isRight ? 700 : 400}" font-family="JetBrains Mono, monospace">${i}</text>`;
+    });
+    svg += `<line x1="${padX}" y1="${baseline}" x2="${W-padX}" y2="${baseline}" stroke="#D8DEE9" stroke-width="1"></line>`;
+
+    document.getElementById('waterSvg').innerHTML = svg;
+    document.getElementById('waterCaption').innerHTML =
+      `선택한 두 막대: <b style="color:#0F7A73;">인덱스 ${left}</b>(높이 ${h1})와 <b style="color:#C9962B;">인덱스 ${right}</b>(높이 ${h2}). ` +
+      `물은 더 낮은 막대 높이인 <b>${minH}</b>까지만 채워지고, 폭은 <b>${width}</b>칸입니다. ` +
+      `넓이 = 폭 × 높이 = ${width} × ${minH} = <b>${area}</b>. ` +
+      `양쪽 슬라이더를 이리저리 움직여서 넓이가 가장 커지는 조합을 직접 찾아보세요.`;
+  }
+
+  function showOptimalWater(){
+    document.getElementById('waterLeft').value = 1;
+    document.getElementById('waterRight').value = 8;
+    drawWater();
+  }
+
+  document.getElementById('waterLeft').addEventListener('input', () => drawWater('waterLeft'));
+  document.getElementById('waterRight').addEventListener('input', () => drawWater('waterRight'));
+  drawWater();
+
+  /* ============ 응용② 중복 제거 slow/fast 시각화 ============ */
+  const dupSteps = [
+    { array:[1,1,2,3,3,3,4], slow:0, fast:null, changed:null,
+      note:"시작: slow = 0. 배열의 0번 인덱스까지가 '지금까지 확정된 고유값들'의 영역입니다." },
+    { array:[1,1,2,3,3,3,4], slow:0, fast:1, changed:null,
+      note:"fast = 1: nums[1] = 1, nums[slow] = nums[0] = 1 → 같음 → 아무것도 하지 않고 fast만 한 칸 전진합니다." },
+    { array:[1,1,2,3,3,3,4], slow:0, fast:2, changed:null,
+      note:"fast = 2: nums[2] = 2 ≠ nums[slow] = nums[0] = 1 → 다름! 업데이트를 진행합니다." },
+    { array:[1,2,2,3,3,3,4], slow:1, fast:2, changed:1,
+      note:"업데이트 완료: slow += 1 (slow=1), nums[1] = nums[2] = 2 로 덮어씁니다." },
+    { array:[1,2,2,3,3,3,4], slow:1, fast:3, changed:null,
+      note:"fast = 3: nums[3] = 3 ≠ nums[slow] = nums[1] = 2 → 다름! 업데이트를 진행합니다." },
+    { array:[1,2,3,3,3,3,4], slow:2, fast:3, changed:2,
+      note:"업데이트 완료: slow += 1 (slow=2), nums[2] = nums[3] = 3 으로 덮어씁니다." },
+    { array:[1,2,3,3,3,3,4], slow:2, fast:4, changed:null,
+      note:"fast = 4: nums[4] = 3, nums[slow] = nums[2] = 3 → 같음 → 건너뜁니다." },
+    { array:[1,2,3,3,3,3,4], slow:2, fast:5, changed:null,
+      note:"fast = 5: nums[5] = 3, nums[slow] = nums[2] = 3 → 같음 → 또 건너뜁니다." },
+    { array:[1,2,3,3,3,3,4], slow:2, fast:6, changed:null,
+      note:"fast = 6: nums[6] = 4 ≠ nums[slow] = nums[2] = 3 → 다름! 업데이트를 진행합니다." },
+    { array:[1,2,3,4,3,3,4], slow:3, fast:6, changed:3,
+      note:"업데이트 완료: slow += 1 (slow=3), nums[3] = nums[6] = 4 로 덮어씁니다." },
+    { array:[1,2,3,4,3,3,4], slow:3, fast:null, changed:null,
+      note:"반복 종료! 고유한 원소는 nums[0..slow] = [1, 2, 3, 4], 개수는 slow+1 = 4개입니다. 그 뒤(인덱스 4~6, 흐리게 표시)는 신경 쓰지 않아도 되는 값입니다." },
+  ];
+  let dupStepIdx = 0;
+
+  function renderDup(stepIdx){
+    const step = dupSteps[stepIdx];
+    const isFinal = stepIdx === dupSteps.length - 1;
+    const arrayEl = document.getElementById('dupArray');
+    const ptrEl = document.getElementById('dupPointers');
+
+    arrayEl.innerHTML = step.array.map((v, i) => {
+      let cls = 'dup-cell';
+      if (isFinal){
+        cls += (i <= step.slow) ? ' slow' : ' stale';
+      } else {
+        if (i === step.slow) cls += ' slow';
+        if (i === step.fast) cls += ' fast';
+        if (i === step.changed) cls += ' changed';
+      }
+      return `<div class="${cls}">${v}</div>`;
+    }).join('');
+
+    ptrEl.innerHTML = step.array.map((_, i) => {
+      if (isFinal) return `<div class="dup-pointer-label"></div>`;
+      const isSlow = i === step.slow, isFast = i === step.fast;
+      let label = '', cls = 'dup-pointer-label';
+      if (isSlow && isFast){ label = 'slow,fast'; cls += ' slow-label'; }
+      else if (isSlow){ label = 'slow'; cls += ' slow-label'; }
+      else if (isFast){ label = 'fast'; cls += ' fast-label'; }
+      return `<div class="${cls}">${label}</div>`;
+    }).join('');
+
+    document.getElementById('dupCaption').textContent = step.note;
+    document.getElementById('dupStepIndicator').textContent = (stepIdx + 1) + ' / ' + dupSteps.length;
+  }
+
+  function dupStep(delta){
+    dupStepIdx = Math.min(dupSteps.length - 1, Math.max(0, dupStepIdx + delta));
+    renderDup(dupStepIdx);
+  }
+  renderDup(0);
+
+  /* ============ 실습① 벤치마크 결과 그래프 ============ */
+  let benchRows = [
+    {n:1000,  a:0.00028, i:0.018},
+    {n:2000,  a:0.00055, i:0.072},
+    {n:4000,  a:0.00110, i:0.290},
+    {n:8000,  a:0.00220, i:1.160},
+    {n:16000, a:0.00440, i:4.640},
+  ];
+
+  function renderRows(){
+    const container = document.getElementById('chartRows');
+    container.innerHTML = benchRows.map((row, idx) => `
+      <div class="chart-input-row">
+        <input type="number" step="any" class="n-input" value="${row.n ?? ''}" placeholder="n" oninput="updateRow(${idx},'n',this.value)">
+        <input type="number" step="any" class="append-input" value="${row.a ?? ''}" placeholder="예: 0.0003" oninput="updateRow(${idx},'a',this.value)">
+        <input type="number" step="any" class="insert-input" value="${row.i ?? ''}" placeholder="예: 0.02" oninput="updateRow(${idx},'i',this.value)">
+        <button class="row-del" onclick="removeRow(${idx})" title="이 행 삭제">✕</button>
+      </div>`).join('');
+  }
+
+  function updateRow(idx, key, val){
+    benchRows[idx][key] = val === '' ? null : parseFloat(val);
+    drawBenchChart();
+  }
+
+  function removeRow(idx){
+    benchRows.splice(idx, 1);
+    renderRows();
+    drawBenchChart();
+  }
+
+  function addRow(){
+    benchRows.push({n:null, a:null, i:null});
+    renderRows();
+  }
+
+  function fillSampleData(){
+    benchRows = [
+      {n:1000,  a:0.00028, i:0.018},
+      {n:2000,  a:0.00055, i:0.072},
+      {n:4000,  a:0.00110, i:0.290},
+      {n:8000,  a:0.00220, i:1.160},
+      {n:16000, a:0.00440, i:4.640},
+    ];
+    renderRows();
+    drawBenchChart();
+  }
+
+  function parsePaste(){
+    const text = document.getElementById('pasteArea').value;
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const parsed = [];
+    lines.forEach(line => {
+      const parts = line.split(/[\s,\t]+/).map(Number);
+      if (parts.length >= 3 && parts.slice(0, 3).every(v => !isNaN(v))){
+        parsed.push({n: parts[0], a: parts[1], i: parts[2]});
+      }
+    });
+    if (parsed.length > 0){
+      benchRows = parsed;
+      renderRows();
+      drawBenchChart();
+    } else {
+      alert('인식할 수 있는 줄을 찾지 못했습니다. "n append시간 insert시간" 형태로 한 줄에 하나씩 붙여넣어 주세요.');
+    }
+  }
+
+  function drawBenchChart(){
+    const rows = benchRows
+      .map(r => ({ n: r.n, a: r.a, i: r.i }))
+      .filter(r => r.n !== null && r.n !== undefined && !isNaN(r.n))
+      .sort((r1, r2) => r1.n - r2.n);
+
+    const svg = document.getElementById('benchChart');
+    const W = 640, H = 360, padL = 70, padR = 20, padT = 20, padB = 44;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+
+    if (rows.length === 0){
+      svg.innerHTML = `<text x="${W/2}" y="${H/2}" font-size="13" text-anchor="middle" fill="#7C8698">표에 n 값을 입력하면 그래프가 표시됩니다.</text>`;
+      return;
+    }
+
+    const allVals = rows.flatMap(r => [r.a, r.i]).filter(v => v !== null && v !== undefined && !isNaN(v));
+    const maxVal = allVals.length ? Math.max(...allVals) : 1;
+    const yMax = maxVal > 0 ? maxVal * 1.15 : 1;
+
+    const xOf = idx => rows.length > 1 ? padL + (idx / (rows.length - 1)) * plotW : padL + plotW / 2;
+    const yOf = v => padT + plotH - (v / yMax) * plotH;
+
+    function pathFor(key, color){
+      const pts = rows.map((r, idx) => {
+        const v = r[key];
+        return (v === null || v === undefined || isNaN(v)) ? null : [xOf(idx), yOf(v)];
+      }).filter(p => p !== null);
+      if (pts.length < 1) return '';
+      const d = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+      const dots = pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="${color}"></circle>`).join('');
+      return pts.length > 1
+        ? `<path d="${d}" fill="none" stroke="${color}" stroke-width="2.5"></path>${dots}`
+        : dots;
+    }
+
+    let axes = `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="#D8DEE9" stroke-width="1"></line>`;
+    axes += `<line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="#D8DEE9" stroke-width="1"></line>`;
+
+    let gridAndLabels = '';
+    for (let g = 0; g <= 4; g++){
+      const v = yMax * g / 4;
+      const y = yOf(v);
+      gridAndLabels += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${padL+plotW}" y2="${y.toFixed(1)}" stroke="#E6EAF1" stroke-width="1"></line>`;
+      gridAndLabels += `<text x="${padL-8}" y="${(y+4).toFixed(1)}" font-size="10.5" text-anchor="end" fill="#7C8698" font-family="JetBrains Mono, monospace">${v.toFixed(v < 0.01 ? 5 : 3)}s</text>`;
+    }
+    rows.forEach((r, idx) => {
+      const x = xOf(idx);
+      gridAndLabels += `<text x="${x.toFixed(1)}" y="${padT+plotH+20}" font-size="10.5" text-anchor="middle" fill="#4A5468" font-family="JetBrains Mono, monospace">${r.n.toLocaleString()}</text>`;
+    });
+    gridAndLabels += `<text x="${padL+plotW/2}" y="${H-6}" font-size="11" text-anchor="middle" fill="#7C8698">n (리스트 크기)</text>`;
+
+    const appendPath = pathFor('a', '#0F7A73');
+    const insertPath = pathFor('i', '#B5502E');
+
+    svg.innerHTML = axes + gridAndLabels + appendPath + insertPath;
+  }
+
+  renderRows();
+  drawBenchChart();
+
+  /* ============ mystery(n) 실측 벤치마크 그래프 ============ */
+  let mysteryBenchRows = [
+    {n:100000,  t:0.0031},
+    {n:200000,  t:0.0063},
+    {n:400000,  t:0.0125},
+    {n:800000,  t:0.0251},
+    {n:1600000, t:0.0502},
+  ];
+
+  function renderMysteryRows(){
+    const container = document.getElementById('mysteryChartRows');
+    container.innerHTML = mysteryBenchRows.map((row, idx) => `
+      <div class="chart-input-row">
+        <input type="number" step="any" class="n-input" value="${row.n ?? ''}" placeholder="n" oninput="updateMysteryRow(${idx},'n',this.value)">
+        <input type="number" step="any" class="append-input" value="${row.t ?? ''}" placeholder="예: 0.003" oninput="updateMysteryRow(${idx},'t',this.value)">
+        <span></span>
+        <button class="row-del" onclick="removeMysteryRow(${idx})" title="이 행 삭제">✕</button>
+      </div>`).join('');
+  }
+
+  function updateMysteryRow(idx, key, val){
+    mysteryBenchRows[idx][key] = val === '' ? null : parseFloat(val);
+    drawMysteryBenchChart();
+  }
+
+  function removeMysteryRow(idx){
+    mysteryBenchRows.splice(idx, 1);
+    renderMysteryRows();
+    drawMysteryBenchChart();
+  }
+
+  function addMysteryRow(){
+    mysteryBenchRows.push({n:null, t:null});
+    renderMysteryRows();
+  }
+
+  function fillMysterySampleData(){
+    mysteryBenchRows = [
+      {n:100000,  t:0.0031},
+      {n:200000,  t:0.0063},
+      {n:400000,  t:0.0125},
+      {n:800000,  t:0.0251},
+      {n:1600000, t:0.0502},
+    ];
+    renderMysteryRows();
+    drawMysteryBenchChart();
+  }
+
+  function parseMysteryPaste(){
+    const text = document.getElementById('mysteryPasteArea').value;
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const parsed = [];
+    lines.forEach(line => {
+      const parts = line.split(/[\s,\t]+/).map(Number);
+      if (parts.length >= 2 && parts.slice(0, 2).every(v => !isNaN(v))){
+        parsed.push({n: parts[0], t: parts[1]});
+      }
+    });
+    if (parsed.length > 0){
+      mysteryBenchRows = parsed;
+      renderMysteryRows();
+      drawMysteryBenchChart();
+    } else {
+      alert('인식할 수 있는 줄을 찾지 못했습니다. "n 시간" 형태로 한 줄에 하나씩 붙여넣어 주세요.');
+    }
+  }
+
+  function drawMysteryBenchChart(){
+    const rows = mysteryBenchRows
+      .map(r => ({ n: r.n, t: r.t }))
+      .filter(r => r.n !== null && r.n !== undefined && !isNaN(r.n))
+      .sort((r1, r2) => r1.n - r2.n);
+
+    const svg = document.getElementById('mysteryBenchChart');
+    const W = 640, H = 300, padL = 70, padR = 20, padT = 20, padB = 44;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+
+    if (rows.length === 0){
+      svg.innerHTML = `<text x="${W/2}" y="${H/2}" font-size="13" text-anchor="middle" fill="#7C8698">표에 n 값을 입력하면 그래프가 표시됩니다.</text>`;
+      return;
+    }
+
+    const allVals = rows.map(r => r.t).filter(v => v !== null && v !== undefined && !isNaN(v));
+    const maxVal = allVals.length ? Math.max(...allVals) : 1;
+    const yMax = maxVal > 0 ? maxVal * 1.15 : 1;
+
+    const xOf = idx => rows.length > 1 ? padL + (idx / (rows.length - 1)) * plotW : padL + plotW / 2;
+    const yOf = v => padT + plotH - (v / yMax) * plotH;
+
+    const pts = rows.map((r, idx) => {
+      const v = r.t;
+      return (v === null || v === undefined || isNaN(v)) ? null : [xOf(idx), yOf(v)];
+    }).filter(p => p !== null);
+    const dPath = pts.length > 1 ? pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') : '';
+    const dots = pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="#0F7A73"></circle>`).join('');
+
+    let axes = `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="#D8DEE9" stroke-width="1"></line>`;
+    axes += `<line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="#D8DEE9" stroke-width="1"></line>`;
+
+    let gridAndLabels = '';
+    for (let g = 0; g <= 4; g++){
+      const v = yMax * g / 4;
+      const y = yOf(v);
+      gridAndLabels += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${padL+plotW}" y2="${y.toFixed(1)}" stroke="#E6EAF1" stroke-width="1"></line>`;
+      gridAndLabels += `<text x="${padL-8}" y="${(y+4).toFixed(1)}" font-size="10.5" text-anchor="end" fill="#7C8698" font-family="JetBrains Mono, monospace">${v.toFixed(v < 0.01 ? 5 : 3)}s</text>`;
+    }
+    rows.forEach((r, idx) => {
+      const x = xOf(idx);
+      gridAndLabels += `<text x="${x.toFixed(1)}" y="${padT+plotH+20}" font-size="10.5" text-anchor="middle" fill="#4A5468" font-family="JetBrains Mono, monospace">${r.n.toLocaleString()}</text>`;
+    });
+    gridAndLabels += `<text x="${padL+plotW/2}" y="${H-6}" font-size="11" text-anchor="middle" fill="#7C8698">n</text>`;
+
+    svg.innerHTML = axes + gridAndLabels + (dPath ? `<path d="${dPath}" fill="none" stroke="#0F7A73" stroke-width="2.5"></path>` : '') + dots;
+  }
+
+  renderMysteryRows();
+  drawMysteryBenchChart();
+
+  const complexities = [
+    {label:'O(1)',       fn:n=>1,               color:'#0F7A73'},
+    {label:'O(log n)',   fn:n=>Math.log2(n),    color:'#2F4B7C'},
+    {label:'O(n)',       fn:n=>n,               color:'#C9962B'},
+    {label:'O(n log n)', fn:n=>n*Math.log2(n),  color:'#B5502E'},
+    {label:'O(n²)',      fn:n=>n*n,             color:'#7A2E17'},
+  ];
+  const barsEl = document.getElementById('bars');
+  const nSlider = document.getElementById('nSlider');
+  const nReadout = document.getElementById('nReadout');
+
+  function renderBars(n){
+    nReadout.textContent = 'n = ' + n;
+    const raw = complexities.map(c => Math.max(c.fn(n), 0.001));
+    const maxLog = Math.log(Math.max(...raw) + 1);
+    barsEl.innerHTML = '';
+    complexities.forEach((c, i) => {
+      const val = raw[i];
+      const pct = Math.max(3, (Math.log(val + 1) / maxLog) * 100);
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = `
+        <div class="bar-label">${c.label}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%; background:${c.color};">
+            <span>${val >= 1000 ? Math.round(val).toLocaleString() : val.toFixed(2)}</span>
+          </div>
+        </div>`;
+      barsEl.appendChild(row);
+    });
+  }
+  nSlider.addEventListener('input', e => renderBars(Number(e.target.value)));
+  renderBars(Number(nSlider.value));
+
+  const quizData = [
+    {
+      q:"크기가 꽉 찬 파이썬 리스트에 append(x)를 호출하는 '그 순간'의 시간 복잡도는?",
+      opts:["O(1)", "O(N) — 더 큰 메모리로 재할당 및 전체 복사 발생", "O(log N)"],
+      answer:1,
+      explain:"재할당이 일어나는 그 순간만 놓고 보면 전체 원소를 새 메모리로 복사해야 하므로 O(N)입니다. 다만 여러 번의 append를 평균하면 O(1)로 분할상환됩니다."
+    },
+    {
+      q:"Big-Θ(세타) 표기법이 의미하는 것은?",
+      opts:["항상 최악의 경우만을 나타낸다", "항상 최선의 경우만을 나타낸다", "상한과 하한이 같아, 사실상 정확한 증가율을 나타낸다"],
+      answer:2,
+      explain:"Θ는 상한(O)과 하한(Ω)이 동일한 증가율로 묶일 때 사용하며, 알고리즘의 '진짜' 증가율에 가장 가까운 표현입니다."
+    },
+    {
+      q:"정렬된 배열에서 투 포인터 기법을 쓸 수 있는 근본적인 이유는?",
+      opts:["배열의 크기가 항상 작기 때문에", "정렬 순서 덕분에 포인터를 움직일 방향을 논리적으로 결정할 수 있기 때문에", "파이썬 리스트는 원래 O(1) 탐색이 가능하기 때문에"],
+      answer:1,
+      explain:"정렬되어 있기 때문에 '합이 크면 오른쪽을 줄이고, 작으면 왼쪽을 키운다'는 식의 방향 판단이 가능해집니다. 이 정보가 없다면 모든 쌍을 다 봐야 합니다."
+    },
+    {
+      q:"lst.insert(0, x)를 n번 반복하는 루프 전체의 시간 복잡도는?",
+      opts:["O(N²) — 매 삽입이 O(N)이고 이를 n번 반복", "O(N) — insert는 항상 O(1)이므로", "O(N log N)"],
+      answer:0,
+      explain:"insert(0, x) 자체가 O(N)인데, 이걸 n번 반복하므로 총 O(N × N) = O(N²)이 됩니다. 실습①의 벤치마크 결과와 정확히 일치합니다."
+    },
+    {
+      q:"두 개의 for문이 중첩되지 않고 순서대로(나란히) 각각 n번씩 실행된다면, 전체 시간 복잡도는?",
+      opts:["O(n²) — 반복문이 두 개니까", "O(n) — Big-O는 상수 배수를 무시하므로", "O(2n) — 정확히 두 배로 표기해야 하므로"],
+      answer:1,
+      explain:"연산 횟수는 n + n = 2n이지만, Big-O 표기법은 상수 배수를 버리고 증가율만 남기므로 O(2n)이 아니라 O(n)으로 씁니다. 반복문이 중첩됐는지 나란히 있는지를 구분하는 것이 핵심입니다."
+    },
+    {
+      q:"바깥 루프가 n번, 안쪽 루프가 매번 0, 1, 2, …, n-1번 도는(삼각형 형태) 이중 루프의 시간 복잡도는?",
+      opts:["O(n)", "O(n log n)", "O(n²) — 등차수열의 합 n(n-1)/2에서 최고차항만 남김"],
+      answer:2,
+      explain:"전체 반복 횟수는 0+1+2+…+(n-1) = n(n-1)/2 입니다. Big-O는 최고차항만 남기고 계수·낮은 차수를 버리므로 O(n²)이 됩니다."
+    },
+    {
+      q:"n이 매 반복마다 절반으로 줄어드는 while 루프(n = n // 2)의 시간 복잡도는?",
+      opts:["O(n)", "O(log n) — n을 몇 번 2로 나눠야 1이 되는지를 세는 것과 같다", "O(1)"],
+      answer:1,
+      explain:"n이 절반씩 줄어들어 1 이하가 될 때까지 걸리는 반복 횟수는 log₂(n)번입니다. 이 패턴은 12주차 이진 탐색의 핵심 원리와 동일합니다."
+    },
+    {
+      q:"for문이 하나뿐인 코드 안에서 nums[i] in nums[i+1:] 같은 리스트 검색 연산을 호출한다면, 전체 시간 복잡도는?",
+      opts:["O(n) — 눈에 보이는 반복문이 하나이므로", "O(n²) — 반복문 안에 O(N) 연산이 숨어있으므로", "O(log n)"],
+      answer:1,
+      explain:"눈에 보이는 for문은 하나뿐이지만, 그 안에서 호출하는 in 연산 자체가 이미 O(N)입니다. O(n) 루프 안에 O(n) 연산이 숨어있으므로 전체는 O(n) × O(n) = O(n²)이 됩니다."
+    },
+    {
+      q:"100만 번의 append 중 재할당(O(N) 이벤트)이 대략 몇 번 안팎으로 일어나는가(성장 계수 k≈1.125 기준)?",
+      opts:["약 20번 (k=2로 계산한 값)", "약 117번 — ln(1,000,000)/ln(1.125)", "약 1,000,000번 — 매번 재할당된다"],
+      answer:1,
+      explain:"재할당 횟수는 log_k(n)에 가깝습니다. CPython의 실제 성장 계수 k≈1.125를 쓰면 ln(1,000,000)/ln(1.125) ≈ 117번입니다. k=2로 단순 가정하면 약 20번이 나오지만 실제 계수와는 다릅니다. 어느 쪽이든 100만 번 중 극소수이므로 평균은 O(1)에 수렴합니다."
+    },
+    {
+      q:"이미 정렬된 두 리스트(길이 N, M)를 투 포인터로 병합할 때의 시간 복잡도는?",
+      opts:["O(N+M) — 각 포인터가 자기 배열을 한 번씩만 훑는다", "O(N×M) — 모든 쌍을 비교해야 한다", "O((N+M) log(N+M)) — 합친 뒤 다시 정렬해야 한다"],
+      answer:0,
+      explain:"두 포인터가 각자의 배열에서 한 방향으로만 전진하며 비교하므로, 전체 원소를 딱 한 번씩만 방문합니다. 따라서 O(N+M)입니다. 합친 뒤 다시 정렬하는 방식(O((N+M) log(N+M)))보다 훨씬 효율적입니다."
+    }
+  ];
+
+  let quizScore = 0;
+  let quizAnswered = 0;
+
+  function renderQuiz(){
+    const container = document.getElementById('quiz-container');
+    container.innerHTML = '';
+    quizScore = 0; quizAnswered = 0;
+    document.getElementById('quiz-score').style.display = 'none';
+
+    quizData.forEach((item, qi) => {
+      const box = document.createElement('div');
+      box.className = 'card quiz-item';
+
+      const qEl = document.createElement('div');
+      qEl.className = 'quiz-q';
+      qEl.textContent = (qi+1) + '. ' + item.q;
+      box.appendChild(qEl);
+
+      const optsWrap = document.createElement('div');
+      optsWrap.className = 'quiz-opts';
+      item.opts.forEach((opt, oi) => {
+        const b = document.createElement('button');
+        b.className = 'quiz-opt';
+        b.textContent = opt;
+        b.onclick = () => answerQuiz(qi, oi, b, optsWrap);
+        optsWrap.appendChild(b);
+      });
+      box.appendChild(optsWrap);
+
+      const ex = document.createElement('div');
+      ex.className = 'quiz-explain';
+      ex.id = 'explain-' + qi;
+      ex.textContent = item.explain;
+      box.appendChild(ex);
+
+      container.appendChild(box);
+    });
+  }
+
+  function answerQuiz(qi, oi, btn, wrap){
+    const item = quizData[qi];
+    const buttons = wrap.querySelectorAll('.quiz-opt');
+    buttons.forEach(b => b.disabled = true);
+    if (oi === item.answer){
+      btn.classList.add('correct');
+      quizScore++;
+    } else {
+      btn.classList.add('wrong');
+      buttons[item.answer].classList.add('correct');
+    }
+    document.getElementById('explain-' + qi).classList.add('show');
+    quizAnswered++;
+    if (quizAnswered === quizData.length){
+      document.getElementById('quiz-score').style.display = 'flex';
+      document.getElementById('quiz-score-num').textContent = quizScore + ' / ' + quizData.length;
+    }
+  }
+
+  function resetQuiz(){ renderQuiz(); }
+  renderQuiz();
+
+  function updateProgress(){
+    const boxes = document.querySelectorAll('#checklist input[type=checkbox]');
+    let checked = 0;
+    boxes.forEach(b => {
+      const row = b.closest('.check-row');
+      if (b.checked){ checked++; row.classList.add('done'); }
+      else { row.classList.remove('done'); }
+    });
+    const pct = Math.round(checked / boxes.length * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = checked + ' / ' + boxes.length + ' 완료';
+  }
+
+  /* ============ 통합 과제 정답 잠금 해제 (AES-256-GCM) ============ */
+  const ANSWER_PAYLOAD = {
+    salt: "tL/3M7ht2mAeSS4Gqf1TEg==",
+    iv: "FAKJioeapZhGpl02",
+    iterations: 200000,
+    ciphertext: "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"
+  };
+
+  function base64ToBytes(b64){
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+
+  async function unlockAnswer(){
+    const pwInput = document.getElementById('gatePassword');
+    const status = document.getElementById('gateStatus');
+    const btn = document.getElementById('gateBtn');
+    const password = pwInput.value;
+
+    if (!password){
+      status.textContent = '비밀번호를 입력해 주세요.';
+      status.className = 'gate-status error';
+      return;
+    }
+
+    btn.disabled = true;
+    status.textContent = '확인하는 중...';
+    status.className = 'gate-status busy';
+
+    try {
+      const enc = new TextEncoder();
+      const salt = base64ToBytes(ANSWER_PAYLOAD.salt);
+      const iv = base64ToBytes(ANSWER_PAYLOAD.iv);
+      const ciphertext = base64ToBytes(ANSWER_PAYLOAD.ciphertext);
+
+      const baseKey = await crypto.subtle.importKey(
+        'raw', enc.encode(password), {name: 'PBKDF2'}, false, ['deriveKey']
+      );
+      const key = await crypto.subtle.deriveKey(
+        {name: 'PBKDF2', salt, iterations: ANSWER_PAYLOAD.iterations, hash: 'SHA-256'},
+        baseKey,
+        {name: 'AES-GCM', length: 256},
+        false,
+        ['decrypt']
+      );
+      const plainBuf = await crypto.subtle.decrypt({name: 'AES-GCM', iv}, key, ciphertext);
+      const plaintext = new TextDecoder().decode(plainBuf);
+
+      // 파일로 다운로드 (화면에는 표시하지 않음)
+      const blob = new Blob([plaintext], {type: 'text/x-python;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '2주차_통합과제_정답.py';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      status.textContent = '✅ 비밀번호 확인 완료 — 정답 파일이 다운로드되었습니다.';
+      status.className = 'gate-status success';
+      pwInput.value = '';
+    } catch (err) {
+      status.textContent = '❌ 비밀번호가 올바르지 않습니다. 다시 시도해 주세요.';
+      status.className = 'gate-status error';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('gatePassword').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') unlockAnswer();
+  });
+
+</script>
+</body>
+</html>

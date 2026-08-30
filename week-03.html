@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F7F9FC">
+<meta name="color-scheme" content="light">
+<title>3주차 · 연결 리스트(Linked List) 기초</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14181F; --panel:#FFFFFF; --panel-2:#F5F7FB;
+    --chalk:#14181F; --steel:#4A5468; --amber:#C9962B; --red:#B5502E;
+    --green:#0F7A73; --line:#D8DEE9;
+    --radius:16px;
+    --shadow: 0 1px 2px rgba(20,24,31,0.04), 0 8px 24px -12px rgba(20,24,31,0.12);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; background:#F7F9FC; min-height:100%;}
+  body{
+    margin:0;
+    background-color:#F7F9FC;
+    background-image:
+      linear-gradient(rgba(47,75,124,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(47,75,124,0.045) 1px, transparent 1px);
+    background-size:42px 42px;
+    color:var(--chalk); font-family:'Inter', sans-serif; line-height:1.7; -webkit-font-smoothing:antialiased;
+    min-height:100vh; min-height:100dvh;
+  }
+  ::selection{background:var(--gold-soft, #FBF1DE); color:var(--ink);}
+  a{color:inherit;}
+  :focus-visible{outline:2px solid var(--amber); outline-offset:3px;}
+  .eyebrow{font-family:'JetBrains Mono', monospace; letter-spacing:.1em; text-transform:uppercase; font-size:.72rem; color:var(--amber); font-weight:600;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+  nav{position:sticky; top:0; z-index:50; display:flex; gap:2px; overflow-x:auto; background:rgba(247,249,252,0.9); backdrop-filter: blur(6px); border-bottom:1px solid var(--line); padding:0 1rem;}
+  nav a{flex:0 0 auto; padding:.85rem .9rem; font-size:.8rem; text-decoration:none; color:var(--steel); font-weight:500; white-space:nowrap; border-bottom:2px solid transparent;}
+  nav a:hover{color:var(--ink); border-bottom-color:var(--steel);}
+  .hero{padding:4.5rem 1.5rem 3rem; max-width:900px; margin:0 auto; border-bottom:1px solid var(--line);}
+  .board-tag{display:inline-flex; align-items:center; gap:.5rem; font-family:'JetBrains Mono',monospace; font-size:.78rem; color:var(--steel); background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:.3rem .8rem; margin-bottom:1.4rem; box-shadow:var(--shadow);}
+  .board-tag .dot{width:7px;height:7px;border-radius:50%;background:var(--amber); box-shadow:0 0 8px rgba(201,150,43,0.5);}
+  h1{font-family:'Fraunces', serif; font-size:clamp(2rem, 5vw, 3.1rem); line-height:1.25; margin:0 0 .7rem; font-weight:700; color:var(--ink);}
+  .hero p.lede{color:var(--steel); font-size:1.05rem; max-width:60ch; margin:0 0 2.2rem;}
+  .track{display:flex; align-items:center; flex-wrap:wrap; gap:0; padding:1.4rem 0;}
+  .car{font-family:'JetBrains Mono', monospace; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:.6rem .9rem; font-size:.82rem; color:var(--ink); position:relative; box-shadow:var(--shadow);}
+  .car.head::before{content:'head'; position:absolute; top:-1.15rem; left:0; font-size:.6rem; color:var(--amber); letter-spacing:.08em; font-family:'JetBrains Mono',monospace;}
+  .car.searching{border-color:var(--amber); color:#8A6B1F; background:#FBF1DE;}
+  .car.tag::before{content:attr(data-tag); position:absolute; top:-1.15rem; left:0; font-size:.6rem; color:var(--amber); letter-spacing:.08em; font-family:'JetBrains Mono',monospace;}
+  .arrow{color:var(--amber); font-size:1.1rem; margin:0 .4rem; font-weight:700;}
+  .none-signal{font-family:'JetBrains Mono',monospace; color:var(--red); border:1px dashed var(--red); border-radius:6px; padding:.6rem .8rem; font-size:.78rem; margin-left:.2rem; background:#F8E9E2;}
+  .node-diagram{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.5rem 1.6rem 1.3rem; margin:1.6rem 0 1.8rem; box-shadow:var(--shadow); overflow-x:auto;}
+  .node-diagram .eyebrow{display:block; margin-bottom:.9rem;}
+  .node-diagram svg{display:block; min-width:660px; width:100%; height:auto;}
+  .node-diagram .cap{margin-top:1rem; font-size:.85rem; color:var(--steel);}
+  .node-diagram .cap b{color:#8A6B1F;}
+  .stack-col{display:flex; flex-direction:column-reverse; gap:.4rem; align-items:flex-start;}
+  .grid-cells{display:grid; gap:4px;}
+  .cell{width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:var(--panel); border:1px solid var(--line); border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:.75rem; color:var(--ink);}
+  .cell.on{background:#FBF1DE; border-color:var(--amber); color:#8A6B1F; font-weight:600;}
+  .cell.wall{background:var(--ink); color:#EEF1F6; border-color:var(--ink);}
+  .bars{display:flex; align-items:flex-end; gap:6px; height:110px;}
+  .bar{width:22px; background:var(--panel-2); border:1px solid var(--line); border-radius:3px 3px 0 0; display:flex; align-items:flex-start; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:.65rem; color:var(--steel); padding-top:2px;}
+  .bar.hi{background:#FBF1DE; border-color:var(--amber); color:#8A6B1F;}
+  section{max-width:900px; margin:0 auto; padding:3.4rem 1.5rem; border-bottom:1px solid var(--line); position:relative;}
+  section:last-of-type{border-bottom:none;}
+  section.rail::before{content:''; position:absolute; left:-1px; top:3.6rem; bottom:3.6rem; width:2px; background:repeating-linear-gradient(to bottom, var(--steel) 0 6px, transparent 6px 12px); opacity:.3; display:none;}
+  @media(min-width:960px){section.rail::before{display:block; left:calc(50% - 450px - 22px);}}
+  h2{font-family:'Fraunces', serif; font-size:1.6rem; margin:0 0 1.4rem; display:flex; align-items:baseline; gap:.6rem; color:var(--ink); font-weight:600;}
+  h2 .num{color:var(--amber); font-family:'JetBrains Mono',monospace; font-size:1.1rem;}
+  h3{font-family:'Fraunces', serif; font-size:1.1rem; margin:2rem 0 .8rem; color:var(--ink); font-weight:600;}
+  p{color:#2C3444;}
+  .steel{color:var(--steel);}
+  .card-row{display:grid; gap:1rem; grid-template-columns:1fr 1fr; margin-top:1rem;}
+  @media(max-width:640px){.card-row{grid-template-columns:1fr;}}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.3rem 1.4rem; box-shadow:var(--shadow);}
+  .card .eyebrow{display:block; margin-bottom:.5rem;}
+  .card p{margin:0; color:var(--ink); font-size:.98rem;}
+  .card.q{border-left:3px solid var(--amber);}
+  .card.i{border-left:3px solid var(--green);}
+  .std-badge{display:flex; gap:.8rem; align-items:flex-start; background:#E2F3F1; border:1px solid rgba(15,122,115,0.25); border-left:3px solid var(--green); border-radius:8px; padding:.8rem 1rem; margin-top:1rem; font-size:.9rem; color:#0B5951;}
+  .std-badge .code{font-family:'JetBrains Mono',monospace; font-size:.78rem; font-weight:700; color:var(--green); flex:0 0 auto; white-space:nowrap;}
+  .std-badge p{margin:0; color:#0B5951; font-size:.9rem;}
+  .goal-list{list-style:none; padding:0; margin:1.2rem 0 0; display:grid; gap:.7rem;}
+  .goal-list li{display:flex; gap:.7rem; align-items:flex-start; background:var(--panel-2); border-radius:8px; padding:.75rem 1rem; font-size:.94rem; color:var(--ink);}
+  .goal-list li .mark{color:var(--amber); font-family:'JetBrains Mono',monospace; flex:0 0 auto;}
+  .builder{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.6rem; margin-top:1.5rem; box-shadow:var(--shadow);}
+  .builder-track{min-height:70px; display:flex; align-items:center; flex-wrap:wrap; padding:1.2rem 0; gap:0;}
+  .stepper{min-height:120px; padding:1rem 0;}
+  .step{display:none;}
+  .step.active{display:block; animation:fade .3s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+  @keyframes pop{from{transform:scale(.7); opacity:0;} to{transform:scale(1); opacity:1;}}
+  @media (prefers-reduced-motion: reduce){ .step.active, .builder-track .car{animation:none;} }
+  .step-dots{display:flex; gap:.4rem; margin-top:1rem;}
+  .step-dots button{width:9px; height:9px; padding:0; border-radius:50%; border:1px solid var(--line); background:var(--panel-2);}
+  .step-dots button.active{background:var(--amber); border-color:var(--amber);}
+  .btn-row{display:flex; flex-wrap:wrap; gap:.6rem; margin-top:1rem; align-items:center;}
+  button{font-family:'Inter', sans-serif; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:.6rem 1rem; font-size:.86rem; font-weight:600; cursor:pointer; transition:.15s;}
+  button:hover{border-color:var(--amber); color:#8A6B1F;}
+  button.primary{background:var(--amber); color:#2A1F06; border-color:var(--amber); font-weight:700;}
+  button.primary:hover{background:#DDAD44; color:#2A1F06;}
+  button.danger:hover{border-color:var(--red); color:var(--red);}
+  .builder-note{margin-top:1rem; font-size:.86rem; color:var(--steel); border-top:1px dashed var(--line); padding-top:.9rem; min-height:2.4em;}
+  .builder-note b{color:#8A6B1F;}
+  pre{background:#1B2130; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem; overflow-x:auto; font-size:.86rem; font-family:'JetBrains Mono', monospace; line-height:1.65; color:#E7ECF5;}
+  code{font-family:'JetBrains Mono', monospace;}
+  .kw{color:#7FB0E0;} .fn{color:#E0C26B;} .cm{color:#8593A8; font-style:italic;} .str{color:#8FCA8F;}
+  .blank{background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.28); color:#E0C26B; font-family:'JetBrains Mono', monospace; font-size:.86rem; padding:.15rem .5rem; border-radius:4px; width:8em;}
+  .fill-wrap{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.4rem; box-shadow:var(--shadow);}
+  .fill-actions{display:flex; gap:.6rem; margin-top:1rem; flex-wrap:wrap;}
+  .reveal{display:none; margin-top:1rem; padding:1rem; border-radius:8px; background:#FBF1DE; border:1px solid #EBD9AD; font-size:.88rem; color:#5C4610;}
+  .reveal.show{display:block;}
+  .quiz-item{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.3rem 1.4rem; margin-bottom:1rem; box-shadow:var(--shadow);}
+  .quiz-item p.q-text{color:var(--ink); font-weight:600; margin-top:0;}
+  .quiz-opts{list-style:none; padding:0; margin:.8rem 0 0; display:grid; gap:.5rem;}
+  .quiz-opts li button{width:100%; text-align:left; border-radius:8px; font-weight:500;}
+  .quiz-opts li button.correct{border-color:var(--green); color:#0B5951; background:#E2F3F1; font-weight:600;}
+  .quiz-opts li button.wrong{border-color:var(--red); color:#8A3B21; background:#F8E9E2;}
+  .q-feedback{margin-top:.7rem; font-size:.85rem; color:var(--steel); min-height:1.2em;}
+  .score-pill{display:inline-block; font-family:'JetBrains Mono',monospace; font-size:.85rem; border:1px solid var(--line); background:var(--panel); border-radius:999px; padding:.4rem 1rem; color:var(--steel);}
+  .check-list{list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.7rem;}
+  .check-list li{display:flex; gap:.8rem; align-items:flex-start; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:.9rem 1rem; cursor:pointer; box-shadow:var(--shadow);}
+  .check-list input{margin-top:.25rem; accent-color:var(--green); width:16px; height:16px; flex:0 0 auto;}
+  .check-list li.checked{border-color:rgba(15,122,115,0.4); background:#E2F3F1;}
+  .check-list li.checked span{color:var(--steel); text-decoration:line-through;}
+  .check-list span{font-size:.92rem; color:var(--ink);}
+  .check-list .goal-tag{flex:0 0 auto; font-family:'JetBrains Mono',monospace; font-size:.75rem; font-weight:700; color:var(--amber); background:#FBF1DE; border:1px solid #EBD9AD; border-radius:5px; padding:.05rem .4rem; margin-top:.1rem; text-decoration:none;}
+  .check-list li.checked .goal-tag{color:var(--steel); background:var(--panel-2); border-color:var(--line); text-decoration:none;}
+  #progressBar{height:4px; background:var(--panel-2); border-radius:999px; overflow:hidden; margin-top:1.4rem;}
+  #progressFill{height:100%; width:0%; background:linear-gradient(90deg, var(--green), var(--amber)); transition:width .3s;}
+  footer{max-width:900px; margin:0 auto; padding:2.2rem 1.5rem 4rem; display:flex; align-items:center; gap:1.1rem; flex-wrap:wrap; border-top:1px solid var(--line);}
+  footer img{height:38px; width:auto; display:block;}
+  footer .rule{width:1px; height:34px; background:var(--line); flex:0 0 auto;}
+  footer .credit{font-size:.82rem; color:var(--steel); line-height:1.65;}
+  footer .credit b{color:var(--ink); font-weight:600;}
+  footer .credit .note{font-family:'JetBrains Mono',monospace; font-size:.72rem; color:var(--steel);}
+  table.cmp{width:100%; border-collapse:collapse; margin-top:1rem; font-size:.9rem;}
+  table.cmp th, table.cmp td{border:1px solid var(--line); padding:.6rem .8rem; text-align:left;}
+  table.cmp th{background:var(--panel-2); color:var(--steel); font-family:'JetBrains Mono',monospace; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em;}
+  table.cmp td{background:var(--panel);}
+</style>
+</head>
+<body>
+<div aria-hidden="true" style="position:fixed; inset:0; background:#F7F9FC; z-index:-1;"></div>
+
+<nav aria-label="섹션 이동">
+  <a href="#idea">학습 목표</a>
+  <a href="#theory">이론</a>
+  <a href="#activity">체험 활동</a>
+  <a href="#practice">실습</a>
+  <a href="#quiz">확인 퀴즈</a>
+  <a href="#selfcheck">자가진단</a>
+</nav>
+
+<header class="hero">
+  <div class="board-tag"><span class="dot"></span>WEEK 03 · DEPARTURE BOARD</div>
+  <h1>연결 리스트(Linked List) 기초</h1>
+  <p class="lede">배열이 정해진 좌석표를 쓴다면, 연결 리스트는 흩어진 객차를 그때그때 연결해 열차를 만든다. 오늘은 그 연결 방식의 논리와 대가를 파이썬 코드로 직접 짠다.</p>
+  <div class="track" aria-hidden="true">
+    <div class="car head">10</div><span class="arrow">→</span>
+    <div class="car">7</div><span class="arrow">→</span>
+    <div class="car">42</div><span class="arrow">→</span>
+    <div class="none-signal">None</div>
+  </div>
+</header>
+
+<section id="idea" class="rail">
+  <h2><span class="num">01</span> 학습 목표 &amp; 핵심 질문</h2>
+  <div class="card-row">
+    <div class="card i">
+      <span class="eyebrow">핵심 아이디어</span>
+      <p>물리적인 메모리의 연속성을 포기하면, 데이터의 삽입과 삭제 속도를 극대화할 수 있다.</p>
+    </div>
+    <div class="card q">
+      <span class="eyebrow">핵심 질문</span>
+      <p>배열처럼 연속된 메모리 공간이 부족할 때, 흩어진 데이터를 어떻게 하나의 기차처럼 이어 붙일 수 있을까?</p>
+    </div>
+  </div>
+  <h3>학습 목표</h3>
+  <p class="steel" style="margin:0;">이번 차시를 마치면 아래 네 가지를 스스로 할 수 있어야 한다. 각 목표는 06 자가진단 항목과 연결된다.</p>
+  <ul class="goal-list">
+    <li><span class="mark">①</span><span>노드가 <b>data</b>와 <b>next</b>로 이루어진다는 것을 설명하고, <b>더미 노드</b>가 왜 필요한지 빈 리스트 예외를 예로 들어 근거를 제시할 수 있다.</span></li>
+    <li><span class="mark">②</span><span><code class="mono">__slots__</code>와 더미 노드를 적용해 단일 연결 리스트의 <code class="mono">append</code>와 순회를 결함 없이 <b>설계</b>할 수 있다.</span></li>
+    <li><span class="mark">③</span><span><code class="mono">insert_at</code>·<code class="mono">delete_value</code>·<code class="mono">search</code>를 구현하고 각 연산의 시간 복잡도를 산출하며, 삽입이 왜 <b>"조건부 O(1)"</b>인지 배열과 비교해 설명할 수 있다.</span></li>
+    <li><span class="mark">④</span><span>빈 리스트, tail 갱신 누락 같은 <b>엣지 케이스</b>에서 생기는 오류를 스스로 찾아 <b>방어</b>할 수 있다.</span></li>
+  </ul>
+  <div class="std-badge">
+    <span class="code">[12자구02-01]</span>
+    <p>포인터 기반의 단일 연결 리스트를 더미 노드와 <code class="mono">__slots__</code>를 활용해 결함 없이 구현할 수 있다.</p>
+  </div>
+
+  <h3>2주차 복습</h3><p>지난주 배운 파이썬 리스트는 <code class="mono">insert(0, x)</code>가 O(N)이었다 — 좌석이 번호대로 붙은 기차라서, 앞에 새 칸을 끼우려면 뒤 칸을 전부 밀어야 했다. 연결 리스트는 각 칸이 "다음 칸이 어디 있는지"만 기억하게 해서 이 문제를 근본적으로 피한다.</p>
+</section>
+
+<section id="theory" class="rail">
+  <h2><span class="num">02</span> 이론</h2>
+  <h3>객차가 연결된 기차</h3>
+  <p>연결 리스트의 한 칸을 <b>노드(Node)</b>라 부른다. 노드는 <b>data</b>(싣고 있는 값)와 <b>next</b>(다음 칸에 대한 참조) 두 가지만 가진다. 마지막 칸의 next는 None — "여기서 열차가 끝난다"는 정지 신호다. head가 첫 칸을 가리키고 있으면, next를 따라가며 전체 열차를 순서대로 방문할 수 있다.</p>
+
+  <div class="node-diagram">
+    <span class="eyebrow">노드 구조 &amp; 연결 관계</span>
+    <svg viewBox="0 0 800 362" role="img" aria-label="연결 리스트 다이어그램 두 가지 비교. 위쪽은 head가 첫 노드를 직접 가리키는 기본형이고, 아래쪽은 이 수업의 실습 코드처럼 더미 노드를 두어 dummy.next가 첫 노드를 가리키는 방식이다. 두 방식 모두 노드는 data와 next로 이루어지고 마지막 노드의 next는 None이다.">
+      <defs>
+        <!-- 체인(가로) 화살표: 선 두께에 비례 -->
+        <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#C9962B"></path>
+        </marker>
+        <!-- 포인터(세로) 화살표: 고정 크기라 짧은 선에서도 축이 보인다 -->
+        <marker id="ptr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#C9962B"></path>
+        </marker>
+        <marker id="ptrSteel" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#4A5468"></path>
+        </marker>
+      </defs>
+
+      <!-- ================= 행 1 · 개념(기본형) ================= -->
+      <text x="20" y="22" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" letter-spacing=".05em" fill="#4A5468">① 개념 — 교과서의 기본형</text>
+
+      <text x="217" y="48" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="12" font-weight="700" fill="#C9962B">head</text>
+      <line x1="217" y1="56" x2="217" y2="78" stroke="#C9962B" stroke-width="2" marker-end="url(#ptr)"></line>
+
+      <rect x="185" y="80" width="130" height="60" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+      <line x1="250" y1="80" x2="250" y2="140" stroke="#D8DEE9"></line>
+      <text x="217" y="116" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">10</text>
+      <circle cx="283" cy="110" r="4" fill="#C9962B"></circle>
+      <line x1="289" y1="110" x2="344" y2="110" stroke="#C9962B" stroke-width="2" marker-end="url(#arrowhead)"></line>
+      <text x="217" y="158" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">data</text>
+      <text x="283" y="158" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">next</text>
+
+      <rect x="350" y="80" width="130" height="60" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+      <line x1="415" y1="80" x2="415" y2="140" stroke="#D8DEE9"></line>
+      <text x="382" y="116" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">7</text>
+      <circle cx="448" cy="110" r="4" fill="#C9962B"></circle>
+      <line x1="454" y1="110" x2="509" y2="110" stroke="#C9962B" stroke-width="2" marker-end="url(#arrowhead)"></line>
+
+      <rect x="515" y="80" width="130" height="60" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+      <line x1="580" y1="80" x2="580" y2="140" stroke="#D8DEE9"></line>
+      <text x="547" y="116" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">42</text>
+      <circle cx="613" cy="110" r="4" fill="#C9962B"></circle>
+      <line x1="619" y1="110" x2="674" y2="110" stroke="#C9962B" stroke-width="2" marker-end="url(#arrowhead)"></line>
+
+      <rect x="680" y="80" width="95" height="60" rx="8" fill="#F8E9E2" stroke="#B5502E" stroke-dasharray="4 3"></rect>
+      <text x="727" y="116" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="14" font-weight="600" fill="#B5502E">None</text>
+
+      <!-- 구분선 -->
+      <line x1="20" y1="180" x2="780" y2="180" stroke="#D8DEE9" stroke-dasharray="4 4"></line>
+
+      <!-- ================= 행 2 · 이 수업의 실습 코드 ================= -->
+      <text x="20" y="208" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" letter-spacing=".05em" fill="#0F7A73">② 이 수업의 실습 코드 — 더미 노드 방식</text>
+
+      <text x="52" y="234" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#4A5468">self.dummy</text>
+      <line x1="52" y1="242" x2="52" y2="264" stroke="#4A5468" stroke-width="2" marker-end="url(#ptrSteel)"></line>
+      <text x="547" y="234" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#C9962B">self.tail</text>
+      <line x1="547" y1="242" x2="547" y2="264" stroke="#C9962B" stroke-width="2" marker-end="url(#ptr)"></line>
+
+      <rect x="20" y="266" width="130" height="60" rx="8" fill="#F5F7FB" stroke="#B7BFCF" stroke-dasharray="4 3"></rect>
+      <line x1="85" y1="266" x2="85" y2="326" stroke="#D8DEE9"></line>
+      <text x="52" y="302" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" font-style="italic" fill="#8A93A6">None</text>
+      <circle cx="118" cy="296" r="4" fill="#C9962B"></circle>
+      <line x1="124" y1="296" x2="179" y2="296" stroke="#C9962B" stroke-width="2" marker-end="url(#arrowhead)"></line>
+      <text x="85" y="344" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">dummy · 값 아님</text>
+
+      <rect x="185" y="266" width="130" height="60" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+      <line x1="250" y1="266" x2="250" y2="326" stroke="#D8DEE9"></line>
+      <text x="217" y="302" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">10</text>
+      <circle cx="283" cy="296" r="4" fill="#C9962B"></circle>
+      <line x1="289" y1="296" x2="344" y2="296" stroke="#C9962B" stroke-width="2" marker-end="url(#arrowhead)"></line>
+      <text x="250" y="344" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#0F7A73">dummy.next = 진짜 첫 노드</text>
+
+      <rect x="350" y="266" width="130" height="60" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+      <line x1="415" y1="266" x2="415" y2="326" stroke="#D8DEE9"></line>
+      <text x="382" y="302" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">7</text>
+      <circle cx="448" cy="296" r="4" fill="#C9962B"></circle>
+      <line x1="454" y1="296" x2="509" y2="296" stroke="#C9962B" stroke-width="2" marker-end="url(#arrowhead)"></line>
+
+      <rect x="515" y="266" width="130" height="60" rx="8" fill="#FFFFFF" stroke="#C9962B" stroke-width="1.5"></rect>
+      <line x1="580" y1="266" x2="580" y2="326" stroke="#C9962B" opacity=".5"></line>
+      <text x="547" y="302" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#8A6B1F">42</text>
+      <circle cx="613" cy="296" r="4" fill="#C9962B"></circle>
+      <line x1="619" y1="296" x2="674" y2="296" stroke="#C9962B" stroke-width="2" marker-end="url(#arrowhead)"></line>
+      <text x="580" y="344" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">마지막 노드</text>
+
+      <rect x="680" y="266" width="95" height="60" rx="8" fill="#F8E9E2" stroke="#B5502E" stroke-dasharray="4 3"></rect>
+      <text x="727" y="302" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="14" font-weight="600" fill="#B5502E">None</text>
+    </svg>
+    <p class="cap">두 그림에서 <b>노드의 생김새는 완전히 같다</b> — 왼쪽 칸은 <b>data</b>(값), 오른쪽 칸의 점은 <b>next</b> 참조이고, 마지막 노드의 next는 <b>None</b>이다. 달라지는 것은 <u>맨 앞에 무엇이 있느냐</u>뿐이다. ①은 <code class="mono">head</code>라는 변수가 첫 노드를 직접 가리키는 교과서 기본형이고, ②는 값 없는 <b>더미 노드</b>를 항상 앞에 하나 두어 <code class="mono">dummy.next</code>가 <code class="mono">head</code>의 역할을 대신하는 방식이다.</p>
+    <p class="cap" style="margin-top:.7rem;"><b>04 실습의 코드는 ② 방식을 쓴다.</b> 그래서 <code class="mono">LinkedList</code>에는 <code class="mono">head</code>라는 이름의 변수가 아예 없고, 순회도 <code class="mono">self.dummy.next</code>부터 시작한다. 왜 굳이 빈 칸을 하나 더 두는지는 <a href="#practice">04 실습</a>에서 다룬다 — 리스트가 비어 있든 아니든 <b>"앞 노드가 항상 존재한다"</b>는 상태를 만들어 삽입·삭제 코드에서 예외 처리를 없애기 위해서다.</p>
+  </div>
+
+  <h3>O(1) 삽입, 그 조건은?</h3>
+  <p>"연결 리스트는 삽입이 O(1)"이라는 말은 조건부 진실이다. <u>이미 삽입 위치를 가리키는 참조를 손에 쥐고 있어야</u> O(1)이다. head 삽입은 O(1)이지만, "값이 42인 칸 뒤에 삽입"처럼 위치를 찾아야 하는 경우는 탐색 자체가 O(N)이다.</p>
+  <p class="steel">→ "연결 리스트가 빠르다"가 아니라 "연결 지점을 이미 알고 있다면 그 지점의 삽입/삭제가 빠르다"가 정확한 표현이다.</p>
+
+  <h3>필수 구현 연산 (CRUD)</h3>
+  <p>연결 리스트를 코드로 직접 구현할 때 반드시 작성해야 하는 핵심 메서드들이다. <b>시간 복잡도</b>와 함께 묶어서 기억해야 한다.</p>
+
+  <p style="margin-top:1.4rem;"><span class="eyebrow" style="display:inline;">1. 삽입(Insertion)</span></p>
+  <table class="cmp">
+    <tr><th>연산</th><th>복잡도</th><th>설명</th></tr>
+    <tr><td>맨 앞(Head)에 삽입</td><td class="mono">O(1)</td><td>head 참조만 있으면 탐색 없이 즉시 연결</td></tr>
+    <tr><td>맨 뒤(Tail)에 삽입</td><td class="mono">O(1) / O(N)</td><td>tail 포인터가 있으면 O(1), 없으면 head부터 순회해야 하므로 O(N)</td></tr>
+    <tr><td>중간 특정 위치에 삽입</td><td class="mono">O(N) 탐색 + O(1) 연결</td><td>위치를 찾는 데 O(N)이 걸리지만, 위치를 이미 안다면 포인터 변경만으로 O(1)에 삽입 가능</td></tr>
+  </table>
+
+  <p style="margin-top:1.4rem;"><span class="eyebrow" style="display:inline;">2. 삭제(Deletion)</span></p>
+  <table class="cmp">
+    <tr><th>연산</th><th>복잡도</th><th>설명</th></tr>
+    <tr><td>맨 앞 노드 삭제</td><td class="mono">O(1)</td><td>head를 head.next로 옮기기만 하면 됨</td></tr>
+    <tr><td>특정 값/위치의 노드 삭제</td><td class="mono">O(N)</td><td>삭제할 노드의 "이전 노드"를 찾아야 하므로 head부터 순회 필요</td></tr>
+  </table>
+
+  <p style="margin-top:1.4rem;"><span class="eyebrow" style="display:inline;">3. 탐색(Search / Traversal)</span></p>
+  <table class="cmp">
+    <tr><th>연산</th><th>복잡도</th><th>설명</th></tr>
+    <tr><td>값으로 노드 찾기</td><td class="mono">O(N)</td><td>인덱스로 바로 접근할 수 없으므로, head부터 원하는 값을 찾을 때까지 순차적으로 이동</td></tr>
+  </table>
+  <p class="steel">→ 배열은 "위치(인덱스)"로 O(1) 접근이 가능하지만, 연결 리스트는 "연결 관계"만 알 뿐 위치를 모르므로 탐색은 항상 O(N)이다. 이 차이가 두 자료구조를 언제 선택할지 가르는 기준이 된다.</p>
+  
+</section>
+
+<section id="activity" class="rail">
+  <h2><span class="num">03</span> 체험 활동</h2>
+  <div class="builder">
+    <p class="steel" style="margin-top:0;">버튼을 눌러 삽입·삭제·탐색을 직접 실행하며, 각 연산이 왜 O(1)이거나 O(N)인지 몸으로 확인해보자. 탐색 과정은 노드를 하나씩 훑는 모습을 그대로 보여준다.</p>
+    <div class="builder-track" id="track" aria-live="polite"></div>
+    <div class="btn-row">
+      <button class="primary" id="addHead">← head에 삽입</button>
+      <button id="addTail">tail에 삽입 →</button>
+      <button id="addMiddle">중간에 삽입</button>
+      <button class="danger" id="deleteValue">값으로 삭제</button>
+      <button id="searchValue">값 탐색</button>
+      <button class="danger" id="resetTrack">초기화</button>
+    </div>
+    <div class="builder-note" id="builderNote">아직 열차가 없다. <b>head에 삽입</b>을 눌러 첫 칸을 만들어보자.</div>
+  </div>
+</section>
+
+<section id="practice" class="rail">
+  <h2><span class="num">04</span> 실습</h2>
+  <p><code class="mono">__slots__</code>로 노드 속성을 data, next로 못박아 메모리를 절약한다.</p>
+<pre><code><span class="kw">class</span> <span class="fn">Node</span>:
+    __slots__ = (<span class="str">'data'</span>, <span class="str">'next'</span>)
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, data):
+        self.data = data
+        self.next = <span class="kw">None</span></code></pre>
+  <h3>더미 노드로 빈 리스트 예외 없애기</h3>
+  <p>더미 노드는 데이터 없는 "가짜 첫 칸"을 항상 만들어 두어, "리스트가 비었을 때"와 "이미 노드가 있을 때"를 같은 코드로 처리하게 해준다.</p>
+
+  <div class="node-diagram">
+    <span class="eyebrow">__init__ → append 과정 추적</span>
+    <div class="stepper">
+
+      <div class="step">
+        <span class="eyebrow" style="margin-bottom:.6rem;">STEP 1 · __init__()</span>
+        <svg viewBox="0 0 830 190" role="img" aria-label="초기화 직후: dummy 노드 하나만 존재하고 self.dummy와 self.tail이 모두 dummy를 가리킨다.">
+          <defs><marker id="ah1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9962B"></path></marker></defs>
+          <text x="64" y="18" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#4A5468">self.dummy</text>
+          <line x1="64" y1="26" x2="64" y2="68" stroke="#4A5468" stroke-width="1.6" marker-end="url(#ah1)"></line>
+          <text x="138" y="40" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#C9962B">self.tail</text>
+          <line x1="138" y1="48" x2="138" y2="68" stroke="#C9962B" stroke-width="1.6" marker-end="url(#ah1)"></line>
+          <rect x="30" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="100" y1="70" x2="100" y2="134" stroke="#D8DEE9"></line>
+          <text x="65" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" font-style="italic" fill="#8A93A6">None</text>
+          <circle cx="135" cy="102" r="4" fill="none" stroke="#B7BFCF" stroke-dasharray="2 2"></circle>
+          <text x="100" y="152" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">dummy = Node(None)</text>
+        </svg>
+        <p class="cap"><b>self.dummy = Node(None)</b> — 데이터 없는 더미 노드 하나를 만든다. <b>self.tail = self.dummy</b> — 아직 진짜 데이터가 없으니 tail도 일단 dummy를 가리킨다.</p>
+      </div>
+
+      <div class="step">
+        <span class="eyebrow" style="margin-bottom:.6rem;">STEP 2 · append(10)</span>
+        <svg viewBox="0 0 830 190" role="img" aria-label="append(10) 이후: dummy 다음에 10 노드가 연결되고 self.tail이 10 노드로 이동한다.">
+          <defs><marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9962B"></path></marker></defs>
+          <text x="85" y="18" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#4A5468">self.dummy</text>
+          <line x1="85" y1="24" x2="85" y2="68" stroke="#4A5468" stroke-width="1.6" marker-end="url(#ah2)"></line>
+          <text x="280" y="38" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#C9962B">self.tail</text>
+          <line x1="280" y1="44" x2="280" y2="68" stroke="#C9962B" stroke-width="1.6" marker-end="url(#ah2)"></line>
+          <rect x="30" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="100" y1="70" x2="100" y2="134" stroke="#D8DEE9"></line>
+          <text x="65" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" font-style="italic" fill="#8A93A6">None</text>
+          <circle cx="135" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="141" y1="102" x2="209" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah2)"></line>
+          <rect x="210" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="280" y1="70" x2="280" y2="134" stroke="#D8DEE9"></line>
+          <text x="245" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">10</text>
+          <circle cx="315" cy="102" r="4" fill="none" stroke="#B7BFCF" stroke-dasharray="2 2"></circle>
+          <text x="100" y="152" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">dummy</text>
+        </svg>
+        <p class="cap"><b>new_node = Node(10)</b> 생성 → <b>self.tail.next = new_node</b> (dummy.next가 채워짐) → <b>self.tail = new_node</b>. dummy 바로 뒤에 첫 실제 노드가 연결됐다.</p>
+      </div>
+
+      <div class="step">
+        <span class="eyebrow" style="margin-bottom:.6rem;">STEP 3 · append(7)</span>
+        <svg viewBox="0 0 830 190" role="img" aria-label="append(7) 이후: 10 노드 다음에 7 노드가 연결되고 self.tail이 7 노드로 이동한다.">
+          <defs><marker id="ah3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9962B"></path></marker></defs>
+          <text x="85" y="18" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#4A5468">self.dummy</text>
+          <line x1="85" y1="24" x2="85" y2="68" stroke="#4A5468" stroke-width="1.6" marker-end="url(#ah3)"></line>
+          <text x="460" y="38" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#C9962B">self.tail</text>
+          <line x1="460" y1="44" x2="460" y2="68" stroke="#C9962B" stroke-width="1.6" marker-end="url(#ah3)"></line>
+          <rect x="30" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="100" y1="70" x2="100" y2="134" stroke="#D8DEE9"></line>
+          <text x="65" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" font-style="italic" fill="#8A93A6">None</text>
+          <circle cx="135" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="141" y1="102" x2="209" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah3)"></line>
+          <rect x="210" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="280" y1="70" x2="280" y2="134" stroke="#D8DEE9"></line>
+          <text x="245" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">10</text>
+          <circle cx="315" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="321" y1="102" x2="389" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah3)"></line>
+          <rect x="390" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="460" y1="70" x2="460" y2="134" stroke="#D8DEE9"></line>
+          <text x="425" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">7</text>
+          <circle cx="495" cy="102" r="4" fill="none" stroke="#B7BFCF" stroke-dasharray="2 2"></circle>
+          <text x="100" y="152" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">dummy</text>
+        </svg>
+        <p class="cap"><b>new_node = Node(7)</b> 생성 → <b>self.tail.next = new_node</b> (10의 next가 채워짐) → <b>self.tail = new_node</b>. tail이 7로 이동했다.</p>
+      </div>
+
+      <div class="step">
+        <span class="eyebrow" style="margin-bottom:.6rem;">STEP 4 · append(42)</span>
+        <svg viewBox="0 0 830 190" role="img" aria-label="append(42) 이후: 7 노드 다음에 42 노드가 연결되고 self.tail이 42 노드로 이동하며, 42의 next는 여전히 None이다.">
+          <defs><marker id="ah4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9962B"></path></marker></defs>
+          <text x="85" y="18" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#4A5468">self.dummy</text>
+          <line x1="85" y1="24" x2="85" y2="68" stroke="#4A5468" stroke-width="1.6" marker-end="url(#ah4)"></line>
+          <text x="640" y="38" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#C9962B">self.tail</text>
+          <line x1="640" y1="44" x2="640" y2="68" stroke="#C9962B" stroke-width="1.6" marker-end="url(#ah4)"></line>
+          <rect x="30" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="100" y1="70" x2="100" y2="134" stroke="#D8DEE9"></line>
+          <text x="65" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" font-style="italic" fill="#8A93A6">None</text>
+          <circle cx="135" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="141" y1="102" x2="209" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah4)"></line>
+          <rect x="210" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="280" y1="70" x2="280" y2="134" stroke="#D8DEE9"></line>
+          <text x="245" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">10</text>
+          <circle cx="315" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="321" y1="102" x2="389" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah4)"></line>
+          <rect x="390" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="460" y1="70" x2="460" y2="134" stroke="#D8DEE9"></line>
+          <text x="425" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">7</text>
+          <circle cx="495" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="501" y1="102" x2="569" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah4)"></line>
+          <rect x="570" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="640" y1="70" x2="640" y2="134" stroke="#D8DEE9"></line>
+          <text x="605" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">42</text>
+          <circle cx="675" cy="102" r="4" fill="none" stroke="#B7BFCF" stroke-dasharray="2 2"></circle>
+          <text x="100" y="152" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">dummy</text>
+        </svg>
+        <p class="cap"><b>new_node = Node(42)</b> 생성 → <b>self.tail.next = new_node</b> (7의 next가 채워짐) → <b>self.tail = new_node</b>. tail이 42로 이동했고, 42.next는 여전히 <b>None</b>이다 — 지금 리스트의 진짜 끝이라는 뜻이다.</p>
+      </div>
+
+      <div class="step-dots"></div>
+      <div class="btn-row">
+        <button class="step-prev">← 이전 단계</button>
+        <button class="primary step-next">다음 단계 →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="fill-wrap">
+<pre><code><span class="kw">class</span> <span class="fn">LinkedList</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.dummy = Node(<span class="kw">None</span>)
+        self.tail = <input class="blank mono" data-answer="self.dummy" placeholder="① ?">
+    <span class="kw">def</span> <span class="fn">append</span>(self, value):
+        new_node = Node(value)
+        self.tail.next = <input class="blank mono" data-answer="new_node" placeholder="② ?">
+        self.tail = <input class="blank mono" data-answer="new_node" placeholder="③ ?">
+    <span class="kw">def</span> <span class="fn">__iter__</span>(self):
+        cur = <input class="blank mono" data-answer="self.dummy.next" placeholder="④ ?">
+        <span class="kw">while</span> cur:
+            <span class="kw">yield</span> cur.data
+            cur = cur.next</code></pre>
+    <div class="fill-actions"><button class="primary check-fill">빈칸 확인하기</button><button class="show-fill">정답 보기</button></div>
+    <div class="q-feedback"></div>
+    <div class="reveal"><b>① self.dummy</b> — tail도 처음엔 더미를 가리켜야 append 로직이 일관된다.<br><b>② new_node</b> — 마지막 칸의 next에 새 노드를 연결.<br><b>③ new_node</b> — tail을 새 노드로 갱신해야 다음 append도 O(1).<br><b>④ self.dummy.next</b> — 순회는 진짜 첫 칸부터.</div>
+  </div>
+
+  <h3>삽입 위치 지정, 삭제, 탐색 완성하기</h3>
+  <p>위 LinkedList 클래스에 <code class="mono">insert_at</code>, <code class="mono">delete_value</code>, <code class="mono">search</code>를 이어서 구현해보자. 각각 위 이론 표의 어떤 복잡도에 해당하는지 떠올리며 빈칸을 채운다.</p>
+
+  <div class="node-diagram">
+    <span class="eyebrow">insert_at(1, 99) 호출 — 새 노드가 index 1 앞에 삽입되는 과정</span>
+    <p class="cap" style="margin-top:-.3rem; margin-bottom:1.1rem;">현재 리스트: dummy → 10 → 7 → 42 → None. index 1은 지금 <b>7</b>이 차지한 자리다 — 새 노드는 그 자리를 밀어내고 들어간다.</p>
+    <div class="stepper">
+
+      <div class="step">
+        <span class="eyebrow" style="margin-bottom:.6rem;">STEP 1 · 탐색 시작</span>
+        <svg viewBox="0 0 920 260" role="img" aria-label="탐색 시작: prev가 dummy를 가리키고, new_node(99)는 아직 리스트에 연결되지 않은 채 대기한다.">
+          <defs><marker id="ah5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9962B"></path></marker></defs>
+          <text x="100" y="18" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#C9962B">prev</text>
+          <line x1="100" y1="24" x2="100" y2="68" stroke="#C9962B" stroke-width="1.6" marker-end="url(#ah5)"></line>
+          <rect x="30" y="70" width="140" height="64" rx="8" fill="#FBF1DE" stroke="#C9962B" stroke-width="1.5"></rect>
+          <line x1="100" y1="70" x2="100" y2="134" stroke="#C9962B" opacity=".5"></line>
+          <text x="65" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" font-style="italic" fill="#8A6B1F">None</text>
+          <circle cx="135" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="141" y1="102" x2="209" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah5)"></line>
+          <text x="100" y="152" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">dummy</text>
+          <rect x="210" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="280" y1="70" x2="280" y2="134" stroke="#D8DEE9"></line>
+          <text x="245" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">10</text>
+          <circle cx="315" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="321" y1="102" x2="389" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah5)"></line>
+          <rect x="390" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="460" y1="70" x2="460" y2="134" stroke="#D8DEE9"></line>
+          <text x="425" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">7</text>
+          <circle cx="495" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="501" y1="102" x2="569" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah5)"></line>
+          <rect x="570" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="640" y1="70" x2="640" y2="134" stroke="#D8DEE9"></line>
+          <text x="605" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">42</text>
+          <circle cx="675" cy="102" r="4" fill="none" stroke="#B7BFCF" stroke-dasharray="2 2"></circle>
+          <line x1="370" y1="140" x2="370" y2="168" stroke="#B7BFCF" stroke-width="1.4" stroke-dasharray="3 3"></line>
+          <rect x="300" y="170" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#B7BFCF" stroke-dasharray="4 3"></rect>
+          <line x1="370" y1="170" x2="370" y2="234" stroke="#D8DEE9"></line>
+          <text x="335" y="206" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">99</text>
+          <circle cx="405" cy="202" r="4" fill="none" stroke="#B7BFCF" stroke-dasharray="2 2"></circle>
+          <text x="370" y="252" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">new_node = Node(99) · 아직 미연결</text>
+        </svg>
+        <p class="cap"><b>new_node = Node(99)</b> 생성 → <b>prev = self.dummy</b>. new_node는 아직 어디에도 연결되지 않은 채(next=None) 따로 떠 있다.</p>
+      </div>
+
+      <div class="step">
+        <span class="eyebrow" style="margin-bottom:.6rem;">STEP 2 · 탐색 진행 (①)</span>
+        <svg viewBox="0 0 920 260" role="img" aria-label="탐색 진행: for 문이 한 번 실행되어 prev가 10으로 이동한다.">
+          <defs><marker id="ah6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9962B"></path></marker></defs>
+          <text x="280" y="18" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#C9962B">prev</text>
+          <line x1="280" y1="24" x2="280" y2="68" stroke="#C9962B" stroke-width="1.6" marker-end="url(#ah6)"></line>
+          <rect x="30" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="100" y1="70" x2="100" y2="134" stroke="#D8DEE9"></line>
+          <text x="65" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" font-style="italic" fill="#8A93A6">None</text>
+          <circle cx="135" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="141" y1="102" x2="209" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah6)"></line>
+          <text x="100" y="152" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">dummy</text>
+          <rect x="210" y="70" width="140" height="64" rx="8" fill="#FBF1DE" stroke="#C9962B" stroke-width="1.5"></rect>
+          <line x1="280" y1="70" x2="280" y2="134" stroke="#C9962B" opacity=".5"></line>
+          <text x="245" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#8A6B1F">10</text>
+          <circle cx="315" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="321" y1="102" x2="389" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah6)"></line>
+          <rect x="390" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="460" y1="70" x2="460" y2="134" stroke="#D8DEE9"></line>
+          <text x="425" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">7</text>
+          <circle cx="495" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="501" y1="102" x2="569" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah6)"></line>
+          <rect x="570" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="640" y1="70" x2="640" y2="134" stroke="#D8DEE9"></line>
+          <text x="605" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">42</text>
+          <circle cx="675" cy="102" r="4" fill="none" stroke="#B7BFCF" stroke-dasharray="2 2"></circle>
+          <line x1="370" y1="140" x2="370" y2="168" stroke="#B7BFCF" stroke-width="1.4" stroke-dasharray="3 3"></line>
+          <rect x="300" y="170" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#B7BFCF" stroke-dasharray="4 3"></rect>
+          <line x1="370" y1="170" x2="370" y2="234" stroke="#D8DEE9"></line>
+          <text x="335" y="206" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">99</text>
+          <circle cx="405" cy="202" r="4" fill="none" stroke="#B7BFCF" stroke-dasharray="2 2"></circle>
+          <text x="370" y="252" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">new_node = Node(99) · 아직 미연결</text>
+        </svg>
+        <p class="cap"><b>for _ in range(1): prev = prev.next</b> — prev가 dummy에서 10으로 한 칸 이동했다. index만큼 반복하는 이 탐색이 O(N)이다. (빈칸 ①의 정답이 <b>prev.next</b>인 이유)</p>
+      </div>
+
+      <div class="step">
+        <span class="eyebrow" style="margin-bottom:.6rem;">STEP 3 · new_node.next = prev.next</span>
+        <svg viewBox="0 0 920 260" role="img" aria-label="new_node.next = prev.next: 새 노드의 next가 먼저 7을 가리키도록 연결한다. 10과 7 사이의 기존 연결은 아직 그대로 남아있다.">
+          <defs><marker id="ah7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9962B"></path></marker></defs>
+          <text x="280" y="18" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#C9962B">prev</text>
+          <line x1="280" y1="24" x2="280" y2="68" stroke="#C9962B" stroke-width="1.6" marker-end="url(#ah7)"></line>
+          <rect x="30" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="100" y1="70" x2="100" y2="134" stroke="#D8DEE9"></line>
+          <text x="65" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" font-style="italic" fill="#8A93A6">None</text>
+          <circle cx="135" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="141" y1="102" x2="209" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah7)"></line>
+          <text x="100" y="152" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">dummy</text>
+          <rect x="210" y="70" width="140" height="64" rx="8" fill="#FBF1DE" stroke="#C9962B" stroke-width="1.5"></rect>
+          <line x1="280" y1="70" x2="280" y2="134" stroke="#C9962B" opacity=".5"></line>
+          <text x="245" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#8A6B1F">10</text>
+          <circle cx="315" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="321" y1="102" x2="389" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah7)"></line>
+          <rect x="390" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="460" y1="70" x2="460" y2="134" stroke="#D8DEE9"></line>
+          <text x="425" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">7</text>
+          <circle cx="495" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="501" y1="102" x2="569" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah7)"></line>
+          <rect x="570" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="640" y1="70" x2="640" y2="134" stroke="#D8DEE9"></line>
+          <text x="605" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">42</text>
+          <circle cx="675" cy="102" r="4" fill="none" stroke="#B7BFCF" stroke-dasharray="2 2"></circle>
+          <rect x="300" y="170" width="140" height="64" rx="8" fill="#FBF1DE" stroke="#C9962B" stroke-width="1.5"></rect>
+          <line x1="370" y1="170" x2="370" y2="234" stroke="#C9962B" opacity=".5"></line>
+          <text x="335" y="206" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#8A6B1F">99</text>
+          <circle cx="405" cy="202" r="4" fill="#C9962B"></circle>
+          <path d="M 411,202 C 470,202 430,102 388,102" fill="none" stroke="#C9962B" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#ah7)"></path>
+          <text x="370" y="252" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">new_node.next → 7 (① 연결)</text>
+        </svg>
+        <p class="cap"><b>new_node.next = prev.next</b> — 새 노드(99)의 next가 먼저 7을 가리키도록 연결한다(점선 화살표). 10 → 7의 기존 연결은 <u>아직 끊어지지 않았다</u> — 그래서 뒤쪽 리스트(7, 42)를 잃어버리지 않는다.</p>
+      </div>
+
+      <div class="step">
+        <span class="eyebrow" style="margin-bottom:.6rem;">STEP 4 · prev.next = new_node (②, 완료)</span>
+        <svg viewBox="0 0 920 260" role="img" aria-label="prev.next = new_node: 10의 next가 새 노드(99)로 다시 연결되어 dummy → 10 → 99 → 7 → 42 → None 순서가 완성된다.">
+          <defs><marker id="ah8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9962B"></path></marker></defs>
+          <rect x="30" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="100" y1="70" x2="100" y2="134" stroke="#D8DEE9"></line>
+          <text x="65" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" font-style="italic" fill="#8A93A6">None</text>
+          <circle cx="135" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="141" y1="102" x2="209" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah8)"></line>
+          <text x="100" y="152" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">dummy</text>
+          <rect x="210" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="280" y1="70" x2="280" y2="134" stroke="#D8DEE9"></line>
+          <text x="245" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">10</text>
+          <circle cx="315" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="321" y1="102" x2="389" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah8)"></line>
+          <rect x="390" y="70" width="140" height="64" rx="8" fill="#FBF1DE" stroke="#C9962B" stroke-width="1.5"></rect>
+          <line x1="460" y1="70" x2="460" y2="134" stroke="#C9962B" opacity=".5"></line>
+          <text x="425" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#8A6B1F">99</text>
+          <text x="425" y="58" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" font-weight="700" fill="#C9962B">NEW</text>
+          <circle cx="495" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="501" y1="102" x2="569" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah8)"></line>
+          <rect x="570" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="640" y1="70" x2="640" y2="134" stroke="#D8DEE9"></line>
+          <text x="605" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">7</text>
+          <circle cx="675" cy="102" r="4" fill="#C9962B"></circle>
+          <line x1="681" y1="102" x2="749" y2="102" stroke="#C9962B" stroke-width="2" marker-end="url(#ah8)"></line>
+          <rect x="750" y="70" width="140" height="64" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+          <line x1="820" y1="70" x2="820" y2="134" stroke="#D8DEE9"></line>
+          <text x="785" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">42</text>
+          <circle cx="855" cy="102" r="4" fill="none" stroke="#B7BFCF" stroke-dasharray="2 2"></circle>
+        </svg>
+        <p class="cap"><b>prev.next = new_node</b> — 10의 next가 새 노드(99)로 다시 연결된다(빈칸 ②의 정답이 <b>new_node</b>인 이유). 최종 순서: <b>dummy → 10 → 99 → 7 → 42 → None</b>. new_node.next는 이미 7을 가리키고 있었으므로 뒤쪽 연결은 끊기지 않는다. 42가 여전히 tail이므로 <code class="mono">if new_node.next is None</code> 분기는 이번엔 실행되지 않는다.</p>
+      </div>
+
+      <div class="step-dots"></div>
+      <div class="btn-row">
+        <button class="step-prev">← 이전 단계</button>
+        <button class="primary step-next">다음 단계 →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="fill-wrap">
+<pre><code>    <span class="kw">def</span> <span class="fn">insert_at</span>(self, index, value):
+        new_node = Node(value)
+        prev = self.dummy
+        <span class="kw">for</span> _ <span class="kw">in</span> range(index):
+            prev = <input class="blank mono" data-answer="prev.next" placeholder="① ?">   <span class="cm"># 삽입 직전 위치까지 O(N) 탐색</span>
+        new_node.next = prev.next
+        prev.next = <input class="blank mono" data-answer="new_node" placeholder="② ?">   <span class="cm"># 찾은 위치에 O(1) 연결</span>
+        <span class="kw">if</span> new_node.next <span class="kw">is</span> <span class="kw">None</span>:
+            self.tail = new_node
+
+    <span class="kw">def</span> <span class="fn">delete_value</span>(self, value):
+        prev, cur = self.dummy, self.dummy.next
+        <span class="kw">while</span> cur:
+            <span class="kw">if</span> cur.data == value:
+                prev.next = <input class="blank mono" data-answer="cur.next" placeholder="③ ?">  <span class="cm"># 이전 노드가 삭제 대상을 건너뛰도록 연결</span>
+                <span class="kw">if</span> cur <span class="kw">is</span> self.tail:
+                    self.tail = <input class="blank mono" data-answer="prev" placeholder="④ ?">
+                <span class="kw">return</span> <span class="kw">True</span>
+            prev, cur = cur, cur.next
+        <span class="kw">return</span> <span class="kw">False</span>
+
+    <span class="kw">def</span> <span class="fn">search</span>(self, value):
+        idx = 0
+        <span class="kw">for</span> data <span class="kw">in</span> self:
+            <span class="kw">if</span> data == value:
+                <span class="kw">return</span> idx
+            idx <input class="blank mono" data-answer="+= 1" placeholder="⑤ ?">   <span class="cm"># 못 찾으면 다음 칸으로, 결국 O(N)</span>
+        <span class="kw">return</span> -1</code></pre>
+    <div class="fill-actions"><button class="primary check-fill">빈칸 확인하기</button><button class="show-fill">정답 보기</button></div>
+    <div class="q-feedback"></div>
+    <div class="reveal">
+      <b>① prev.next</b> — index만큼 앞으로 이동해 삽입 직전 노드를 찾는다(O(N) 탐색).<br>
+      <b>② new_node</b> — 찾은 위치의 다음 자리에 새 노드를 끼워 넣는다(O(1) 연결).<br>
+      <b>③ cur.next</b> — 삭제 대상을 건너뛰도록 이전 노드의 next를 다시 연결한다.<br>
+      <b>④ prev</b> — 삭제한 노드가 tail이었다면 tail 포인터도 함께 갱신해야 다음 append가 안전하다.<br>
+      <b>⑤ += 1</b> — 매 비교마다 인덱스를 늘려가며 head부터 순차 탐색한다.
+    </div>
+  </div>
+</section>
+
+<section id="quiz" class="rail">
+  <h2><span class="num">05</span> 확인 퀴즈</h2>
+  <p>정답을 클릭하면 즉시 피드백을 준다. <span class="score-pill" id="scorePill">점수: 0 / 6</span></p>
+  <div class="quiz-item"><p class="q-text">Q1. 연결 리스트 노드는 기본적으로 어떤 두 정보를 가지는가?</p><ul class="quiz-opts"><li><button data-correct="false">인덱스와 값</button></li><li><button data-correct="true">데이터와 다음 노드에 대한 참조</button></li><li><button data-correct="false">시작 주소와 끝 주소</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q2. "값이 100인 노드를 찾아 그 뒤에 삽입"하는 연산의 전체 복잡도는?</p><ul class="quiz-opts"><li><button data-correct="false">항상 O(1)</button></li><li><button data-correct="true">O(N) — 탐색이 필요하므로</button></li><li><button data-correct="false">O(log N)</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q3. __slots__ = ('data', 'next')를 쓰는 주된 목적은?</p><ul class="quiz-opts"><li><button data-correct="false">타입 힌트 강제</button></li><li><button data-correct="false">정렬 속도 향상</button></li><li><button data-correct="true">__dict__ 생성을 막아 메모리 절약</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q4. 더미 노드를 두는 이유로 가장 알맞은 것은?</p><ul class="quiz-opts"><li><button data-correct="false">마지막 원소를 빠르게 찾기 위해</button></li><li><button data-correct="true">빈 리스트와 비어있지 않은 경우를 같은 코드로 처리하기 위해</button></li><li><button data-correct="false">데이터를 정렬 상태로 유지하기 위해</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q5. 특정 값을 가진 노드를 삭제할 때 "이전 노드"의 참조가 반드시 필요한 이유는?</p><ul class="quiz-opts"><li><button data-correct="true">이전 노드의 next를 다음 노드로 연결해 삭제 대상을 건너뛰어야 하므로</button></li><li><button data-correct="false">삭제할 노드의 데이터를 미리 복사해두기 위해</button></li><li><button data-correct="false">연결 리스트는 항상 정렬 상태를 유지해야 하므로</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q6. search(value)가 배열의 인덱스 접근과 달리 평균 O(N)인 이유는?</p><ul class="quiz-opts"><li><button data-correct="false">파이썬 함수 호출 자체가 느리기 때문</button></li><li><button data-correct="true">위치(인덱스)가 아니라 연결 관계만 알아서 head부터 순차 비교해야 하므로</button></li><li><button data-correct="false">데이터가 항상 무작위로 저장되기 때문</button></li></ul><div class="q-feedback"></div></div>
+</section>
+
+<section id="selfcheck" class="rail">
+  <h2><span class="num">06</span> 성취기준 자가진단</h2>
+  <p>아래 항목을 스스로 점검해보자. 왼쪽의 <span class="mono" style="color:#8A6B1F;">①~④</span>는 <a href="#idea">01 학습 목표</a>의 몇 번에 해당하는지를 나타낸다. 체크할 때마다 진행률이 채워진다.</p>
+  <ul class="check-list" id="checklist">
+    <li><input type="checkbox"><span class="goal-tag">①</span><span>노드가 data와 next로 구성된다는 것을 설명할 수 있다.</span></li>
+    <li><input type="checkbox"><span class="goal-tag">①</span><span>더미 노드 없이 짠 코드에서 빈 리스트 예외 처리가 왜 필요한지 예를 들 수 있다.</span></li>
+    <li><input type="checkbox"><span class="goal-tag">②</span><span>__slots__가 어떤 메모리 오버헤드를 줄이는지 설명할 수 있다.</span></li>
+    <li><input type="checkbox"><span class="goal-tag">②</span><span>더미 노드를 적용해 append와 순회를 스스로 작성할 수 있다.</span></li>
+    <li><input type="checkbox"><span class="goal-tag">③</span><span>연결 리스트 삽입이 왜 "조건부" O(1)인지 설명할 수 있다.</span></li>
+    <li><input type="checkbox"><span class="goal-tag">③</span><span>insert_at, delete_value, search를 구현하고 각각의 시간 복잡도를 설명할 수 있다.</span></li>
+    <li><input type="checkbox"><span class="goal-tag">④</span><span>tail 갱신 누락처럼 에러 없이 리스트가 조용히 깨지는 경우를 예로 들 수 있다.</span></li>
+  </ul>
+  <div id="progressBar"><div id="progressFill"></div></div>
+  <p class="steel" id="progressText" style="margin-top:.6rem; font-size:.85rem;">0 / 7 완료</p>
+</section>
+
+<footer>
+  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATgAAABICAMAAABV9BktAAAAwFBMVEXN5Oag2+OUpp+f0JxroaTb7O3T4p7n+PFtyapv094jSnYXrM9HYZpWbHJjssqSqsoYqrkxWZjm6+82w88RMoyQnncTL21sinTW3Hmz03rBvI05xrn+/v4aRo0ROocjSY9vhqkXttIROHkstco0Vo9JZ5O2xdWnuMwsq8eSp8fc5u1NuMoFK3XG1+ax5+zq9/ROuK5ux9NYdJZYdqeGmLJRxdApR3aw1pLi6u8tqrgxtLaQ1qxke5hje6XU5etuhZaAxpalAAAAQHRSTlPs/////5z/Yf////////////8w////////////AP////////////////92///6/y3//////////1D//////6j/Ae4gtgAAFG9JREFUeNrtmwd3o0gSgBuaJJQsh/HsHjQZoQiSQLKCpf//r66qCULJ1uzN3vO8577bsUQomq8rg4jxPf7RIN8IvsF9BXAyUcpB1HtlxcXft+Hb2/DjQy62PML448HJikIlKZHWm02SJBKlyl3s+q6Yf1i6uvtDBtk/7HzDsJ/2ORbRHdROGO5EY7fkM0jHzBxL8GG+lP9UcDJQ07ZUy+jGcbarFQWIVJHjW7jEPozuoG+I426+adAddFP4G44X/Ht3OR6PrT4oVzpGcI8hDBIOybhlzN0Jn0YK5+BcAkZy1NXokj8CnArYvO1KWWmJojmOt0k0qtC1dFPrrDEO1w0AHFKRg/liPl8sWj4hLuqQEbrWgAzYs7+0LIaHhD/gePbDHroLY84AnB3MYSzmgQ3guMaJP9xxPhhXxC8PDrBFnqNRulISKjmOM9pGTe0v+ADorgoI+ZDYewGO6L1WK2gFgR+S/J5tvl1i/mLR4+D2Usc3O51QdlsFOB9PabX8dwA3OdG4cM4GXx9crEibbeI42k+6otp243jeVmk6SFCjmviBq+uP7aOp9m3bHkB0IK5vgZebu0JxRMEWRs8luH9Rmuokte005KbqtyZ1ybYbfnlwqiIlDl15TU9b4UiaHlUUTaNrVMLtVrpNDp3XIKcit13Lt5gZGiHrIbgUkRmSa1qFqYKX8xEHcVv9XMNs5vr+0n3n4KwTcIUKfmlwiqQp2lqhqF8QUpPk6SnhLs5xniBG0BvkDm0Cdw7BgQU74LLjitd/bpXB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" alt="대구과학고등학교 CI">
+  <div class="rule" aria-hidden="true"></div>
+  <div class="credit">
+    과학영재학교 정보과학 · 자료구조 3주차 수업자료 — 연결 리스트(Linked List) 기초<br>
+    <b>제작: 대구과학고 교사 이준구</b> · <span class="note">임의 배포를 금지함</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const track = document.getElementById('track');
+  if(!track) return;
+  const note = document.getElementById('builderNote');
+  let cars = [];
+  function render(){
+    track.innerHTML = '';
+    if(cars.length === 0){
+      const none = document.createElement('div'); none.className='none-signal'; none.textContent='head → None';
+      track.appendChild(none); return;
+    }
+    cars.forEach((val, i) => {
+      const car = document.createElement('div'); car.className='car'+(i===0?' head':''); car.textContent=val; car.dataset.idx = i;
+      track.appendChild(car);
+      const arrow = document.createElement('span'); arrow.className='arrow'; arrow.textContent='→';
+      track.appendChild(arrow);
+    });
+    const none = document.createElement('div'); none.className='none-signal'; none.textContent='None';
+    track.appendChild(none);
+  }
+  function randVal(){ return Math.floor(Math.random()*90)+10; }
+  function highlightThenRun(steps, onDone){
+    const carEls = Array.from(track.querySelectorAll('.car'));
+    let i = 0;
+    function tick(){
+      if(i > 0) carEls[i-1] && carEls[i-1].classList.remove('searching');
+      if(i >= steps){ onDone(); return; }
+      if(carEls[i]) carEls[i].classList.add('searching');
+      i++;
+      setTimeout(tick, 260);
+    }
+    if(steps <= 0){ onDone(); return; }
+    tick();
+  }
+  document.getElementById('addHead').addEventListener('click', () => {
+    cars.unshift(randVal()); render();
+    note.innerHTML = '<b>O(1)</b> — head 참조만 있으면 되므로 탐색 없이 즉시 맨 앞에 연결했다.';
+  });
+  document.getElementById('addTail').addEventListener('click', () => {
+    cars.push(randVal()); render();
+    note.innerHTML = cars.length <= 1 ? '첫 칸이 곧 tail이라 탐색이 필요 없었다.' : '<b>tail 포인터가 없다면 O(N)</b> — head부터 순회해야 한다. (tail을 저장해두면 O(1)로 만들 수 있다.)';
+  });
+  document.getElementById('addMiddle').addEventListener('click', () => {
+    if(cars.length < 2){ note.textContent = '중간 삽입을 보려면 노드가 2개 이상 필요하다. 먼저 삽입해보자.'; return; }
+    const idx = 1 + Math.floor(Math.random() * (cars.length - 1));
+    note.innerHTML = '<b>탐색 중...</b> 삽입 위치(인덱스 ' + idx + ')까지 head부터 한 칸씩 이동한다 — 이 부분이 O(N).';
+    highlightThenRun(idx, () => {
+      cars.splice(idx, 0, randVal());
+      render();
+      note.innerHTML = '위치를 찾는 데 <b>O(N)</b>이 걸렸지만, 찾은 뒤 노드를 끼워 넣는 연결 작업 자체는 <b>O(1)</b>이었다.';
+    });
+  });
+  document.getElementById('deleteValue').addEventListener('click', () => {
+    if(cars.length === 0){ note.textContent = '삭제할 노드가 없다. 먼저 삽입해보자.'; return; }
+    const idx = Math.floor(Math.random() * cars.length);
+    const val = cars[idx];
+    note.innerHTML = '<b>탐색 중...</b> 값 ' + val + '을(를) 가진 노드와 "이전 노드"를 찾기 위해 head부터 순회한다 — O(N).';
+    highlightThenRun(idx + 1, () => {
+      cars.splice(idx, 1);
+      render();
+      note.innerHTML = '값 ' + val + '을(를) 삭제했다. 이전 노드의 next를 다음 노드로 다시 연결했다 — 탐색 O(N) + 연결 변경 O(1).';
+    });
+  });
+  document.getElementById('searchValue').addEventListener('click', () => {
+    if(cars.length === 0){ note.textContent = '탐색할 노드가 없다. 먼저 삽입해보자.'; return; }
+    const idx = Math.floor(Math.random() * cars.length);
+    const val = cars[idx];
+    note.innerHTML = '값 ' + val + '을(를) head부터 순차적으로 비교하며 찾는 중...';
+    highlightThenRun(idx + 1, () => {
+      note.innerHTML = '값 ' + val + '을(를) 인덱스 ' + idx + '에서 찾았다. 비교 횟수 ' + (idx + 1) + '번 — 인덱스로 바로 못 가고 head부터 세었으므로 <b>O(N)</b>.';
+    });
+  });
+  document.getElementById('resetTrack').addEventListener('click', () => { cars = []; render(); note.innerHTML = '초기화되었다.'; });
+  render();
+})();
+</script>
+
+<script>
+// ---------- 스텝 플레이어 (범용) ----------
+(function(){
+  document.querySelectorAll('.stepper').forEach(function(wrap){
+    const steps = wrap.querySelectorAll('.step');
+    const dotWrap = wrap.querySelector('.step-dots');
+    let idx = 0;
+    if(!steps.length) return;
+    steps[0].classList.add('active');
+    if(dotWrap){
+      steps.forEach((s,i) => {
+        const d = document.createElement('button');
+        d.setAttribute('aria-label', '단계 ' + (i+1));
+        if(i===0) d.classList.add('active');
+        d.addEventListener('click', () => go(i));
+        dotWrap.appendChild(d);
+      });
+    }
+    function go(i){
+      steps[idx].classList.remove('active');
+      idx = (i + steps.length) % steps.length;
+      steps[idx].classList.add('active');
+      if(dotWrap){
+        dotWrap.querySelectorAll('button').forEach((d,j)=>d.classList.toggle('active', j===idx));
+      }
+    }
+    const prev = wrap.querySelector('.step-prev');
+    const next = wrap.querySelector('.step-next');
+    if(prev) prev.addEventListener('click', () => go(idx-1));
+    if(next) next.addEventListener('click', () => go(idx+1));
+  });
+})();
+
+// ---------- 빈칸 채우기 (범용) ----------
+(function(){
+  document.querySelectorAll('.fill-wrap').forEach(function(wrap){
+    const checkBtn = wrap.querySelector('.check-fill');
+    const showBtn = wrap.querySelector('.show-fill');
+    const feedback = wrap.querySelector('.q-feedback');
+    const reveal = wrap.querySelector('.reveal');
+    if(checkBtn){
+      checkBtn.addEventListener('click', () => {
+        const blanks = wrap.querySelectorAll('.blank');
+        let correct = 0;
+        blanks.forEach(input => {
+          const ans = (input.dataset.answer || '').replace(/\s+/g,'');
+          const val = input.value.trim().replace(/\s+/g,'');
+          if(val === ans && ans.length){
+            input.style.borderColor = '#0F7A73'; input.style.color = '#8FCA8F'; correct++;
+          } else if(val.length){
+            input.style.borderColor = '#B5502E'; input.style.color = '#E0958A';
+          }
+        });
+        if(feedback) feedback.textContent = correct === blanks.length ? '모두 정답! 구조를 정확히 이해했다.' : correct + ' / ' + blanks.length + ' 정답. 다시 확인해보자.';
+      });
+    }
+    if(showBtn && reveal){
+      showBtn.addEventListener('click', () => reveal.classList.toggle('show'));
+    }
+  });
+})();
+
+// ---------- 퀴즈 (범용) ----------
+(function(){
+  let score = 0;
+  const scored = new Set();
+  document.querySelectorAll('.quiz-item').forEach((item, idx) => {
+    const buttons = item.querySelectorAll('.quiz-opts button');
+    const feedback = item.querySelector('.q-feedback');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => { b.disabled = true; });
+        const isCorrect = btn.dataset.correct === 'true';
+        btn.classList.add(isCorrect ? 'correct' : 'wrong');
+        if(!isCorrect){
+          buttons.forEach(b => { if(b.dataset.correct === 'true') b.classList.add('correct'); });
+        }
+        if(isCorrect && !scored.has(idx)){ score++; scored.add(idx); }
+        if(feedback) feedback.textContent = isCorrect ? '정답이다.' : '오답 — 초록색으로 표시된 것이 정답이다.';
+        const pill = document.getElementById('scorePill');
+        if(pill) pill.textContent = '점수: ' + score + ' / ' + document.querySelectorAll('.quiz-item').length;
+      });
+    });
+  });
+})();
+
+// ---------- 자가진단 체크리스트 (범용) ----------
+(function(){
+  const items = document.querySelectorAll('#checklist li');
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+  function update(){
+    let checked = 0;
+    items.forEach(li => { if(li.querySelector('input').checked) checked++; });
+    if(fill) fill.style.width = (items.length ? (checked / items.length * 100) : 0) + '%';
+    if(text) text.textContent = checked + ' / ' + items.length + ' 완료';
+  }
+  items.forEach(li => {
+    const input = li.querySelector('input');
+    li.addEventListener('click', (e) => {
+      if(e.target !== input) input.checked = !input.checked;
+      li.classList.toggle('checked', input.checked);
+      update();
+    });
+  });
+  update();
+})();
+</script>
+
+</body>
+</html>

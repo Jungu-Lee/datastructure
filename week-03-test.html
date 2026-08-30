@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F7F9FC">
+<meta name="color-scheme" content="light">
+<title>자리수 연결 리스트 덧셈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14181F; --panel:#FFFFFF; --panel-2:#F5F7FB;
+    --chalk:#14181F; --steel:#4A5468; --amber:#C9962B; --red:#B5502E;
+    --green:#0F7A73; --line:#D8DEE9;
+    --radius:16px;
+    --shadow: 0 1px 2px rgba(20,24,31,0.04), 0 8px 24px -12px rgba(20,24,31,0.12);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; background:#F7F9FC; min-height:100%;}
+  body{
+    margin:0;
+    background-color:#F7F9FC;
+    background-image:
+      linear-gradient(rgba(47,75,124,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(47,75,124,0.045) 1px, transparent 1px);
+    background-size:42px 42px;
+    color:var(--chalk); font-family:'Inter', sans-serif; line-height:1.7; -webkit-font-smoothing:antialiased;
+    min-height:100vh; min-height:100dvh;
+  }
+  a{color:inherit;}
+  :focus-visible{outline:2px solid var(--amber); outline-offset:3px;}
+  .eyebrow{font-family:'JetBrains Mono', monospace; letter-spacing:.1em; text-transform:uppercase; font-size:.72rem; color:var(--amber); font-weight:600;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+  .hero{padding:4rem 1.5rem 2.6rem; max-width:900px; margin:0 auto; border-bottom:1px solid var(--line);}
+  .board-tag{display:inline-flex; align-items:center; gap:.5rem; font-family:'JetBrains Mono',monospace; font-size:.78rem; color:var(--steel); background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:.3rem .8rem; margin-bottom:1.4rem; box-shadow:var(--shadow); flex-wrap:wrap;}
+  .board-tag .dot{width:7px;height:7px;border-radius:50%;background:var(--amber); box-shadow:0 0 8px rgba(201,150,43,0.5);}
+  .board-tag .sep{color:var(--line);}
+  .board-tag .hi{color:var(--red); font-weight:700;}
+  h1{font-family:'Fraunces', serif; font-size:clamp(1.9rem, 4.6vw, 2.7rem); line-height:1.3; margin:0 0 .7rem; font-weight:700; color:var(--ink);}
+  .hero p.lede{color:var(--steel); font-size:1.03rem; max-width:62ch; margin:0;}
+  section{max-width:900px; margin:0 auto; padding:3rem 1.5rem; border-bottom:1px solid var(--line);}
+  h2{font-family:'Fraunces', serif; font-size:1.5rem; margin:0 0 1.3rem; display:flex; align-items:baseline; gap:.6rem; color:var(--ink); font-weight:600;}
+  h2 .num{color:var(--amber); font-family:'JetBrains Mono',monospace; font-size:1.05rem;}
+  h3{font-family:'Fraunces', serif; font-size:1.06rem; margin:1.8rem 0 .8rem; color:var(--ink); font-weight:600;}
+  p{color:#2C3444;}
+  .steel{color:var(--steel);}
+  .card-row{display:grid; gap:1rem; grid-template-columns:1fr 1fr 1fr; margin-top:0;}
+  @media(max-width:760px){.card-row{grid-template-columns:1fr;}}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.1rem 1.2rem; box-shadow:var(--shadow);}
+  .card .eyebrow{display:block; margin-bottom:.5rem;}
+  .card p{margin:0; color:var(--ink); font-size:.94rem;}
+  .card .big{font-family:'Fraunces',serif; font-size:1.5rem; font-weight:700; color:var(--ink);}
+  .goal-list{list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.7rem;}
+  .goal-list li{display:flex; gap:.7rem; align-items:flex-start; background:var(--panel-2); border-radius:8px; padding:.8rem 1rem; font-size:.94rem; color:var(--ink);}
+  .goal-list li .mark{color:var(--amber); font-family:'JetBrains Mono',monospace; flex:0 0 auto; font-weight:700;}
+  pre{background:#1B2130; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem; overflow-x:auto; font-size:.86rem; font-family:'JetBrains Mono', monospace; line-height:1.65; color:#E7ECF5;}
+  code{font-family:'JetBrains Mono', monospace;}
+  .kw{color:#7FB0E0;} .fn{color:#E0C26B;} .cm{color:#8593A8; font-style:italic;} .str{color:#8FCA8F;}
+  table.cmp{width:100%; border-collapse:collapse; margin-top:1rem; font-size:.9rem;}
+  table.cmp th, table.cmp td{border:1px solid var(--line); padding:.6rem .8rem; text-align:left; vertical-align:top;}
+  table.cmp th{background:var(--panel-2); color:var(--steel); font-family:'JetBrains Mono',monospace; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em;}
+  table.cmp td{background:var(--panel);}
+  .node-diagram{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.5rem 1.6rem 1.3rem; margin:1.4rem 0; box-shadow:var(--shadow); overflow-x:auto;}
+  .node-diagram .eyebrow{display:block; margin-bottom:.9rem;}
+  .node-diagram svg{display:block; min-width:520px; width:100%; height:auto;}
+  .node-diagram .cap{margin-top:1rem; font-size:.85rem; color:var(--steel);}
+  .node-diagram .cap b{color:#8A6B1F;}
+  .warn-box{background:#F8E9E2; border:1px solid #E3B7A2; border-left:3px solid var(--red); border-radius:8px; padding:1rem 1.2rem; margin:1.2rem 0; font-size:.92rem; color:#7A3520;}
+  .warn-box b{color:var(--red);}
+  .hint-box{background:#FBF1DE; border:1px solid #EBD9AD; border-left:3px solid var(--amber); border-radius:8px; padding:1rem 1.2rem; margin:1.2rem 0; font-size:.92rem; color:#5C4610;}
+  .hint-box b{color:#8A6B1F;}
+  ol.qlist{padding-left:1.3rem; margin:1rem 0 0; display:grid; gap:.9rem;}
+  ol.qlist li{color:var(--ink); font-size:.96rem;}
+  ol.qlist li::marker{color:var(--amber); font-family:'JetBrains Mono',monospace; font-weight:700;}
+  .check-list{list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.7rem;}
+  .check-list li{display:flex; gap:.8rem; align-items:flex-start; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:.9rem 1rem; cursor:pointer; box-shadow:var(--shadow);}
+  .check-list input{margin-top:.25rem; accent-color:var(--green); width:16px; height:16px; flex:0 0 auto;}
+  .check-list li.checked{border-color:rgba(15,122,115,0.4); background:#E2F3F1;}
+  .check-list li.checked span{color:var(--steel); text-decoration:line-through;}
+  .check-list span{font-size:.92rem; color:var(--ink);}
+  #progressBar{height:4px; background:var(--panel-2); border-radius:999px; overflow:hidden; margin-top:1.4rem;}
+  #progressFill{height:100%; width:0%; background:linear-gradient(90deg, var(--green), var(--amber)); transition:width .3s;}
+  footer{max-width:900px; margin:0 auto; padding:3rem 1.5rem 5rem; color:var(--steel); font-size:.88rem;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="board-tag"><span class="dot"></span>WEEK 03 · 과제<span class="sep">|</span>난이도 <span class="hi">상</span><span class="sep">|</span>예상 소요 약 2시간</div>
+  <h1>자리수 연결 리스트 덧셈</h1>
+  <p class="lede">오늘 배운 노드(data/next), 더미 노드, head/tail만으로 두 개의 "숫자 열차"를 하나로 합쳐야 한다. 자리 올림(carry)과 서로 다른 길이의 열차를 빠뜨림 없이 처리하는 것, 그리고 리스트를 뒤집지 않고 결과를 사람이 읽는 순서로 출력하는 것이 이번 과제의 두 가지 핵심 도전이다.</p>
+</header>
+
+<section id="background">
+  <h2><span class="num">01</span> 배경 &amp; 문제 정의</h2>
+  <p>정수 하나를 연결 리스트로 표현할 때, <b>각 노드가 숫자 하나(자리수, 0~9)를 싣고</b>, <b>head가 1의 자리(최하위 자리)</b>를 가리킨다고 약속한다. 예를 들어 342는 다음과 같이 표현된다.</p>
+
+  <div class="node-diagram">
+    <span class="eyebrow">342를 나타내는 연결 리스트 (head = 1의 자리)</span>
+    <svg viewBox="0 0 560 150" role="img" aria-label="342를 나타내는 연결 리스트: head가 2를 가리키고, 2 -> 4 -> 3 -> None 순서로 이어진다.">
+      <defs><marker id="qah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9962B"></path></marker></defs>
+      <text x="65" y="18" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#C9962B">head</text>
+      <line x1="65" y1="24" x2="65" y2="48" stroke="#C9962B" stroke-width="1.6" marker-end="url(#qah)"></line>
+      <rect x="20" y="50" width="90" height="60" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+      <text x="65" y="87" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="20" font-weight="700" fill="#14181F">2</text>
+      <text x="65" y="128" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">1의 자리</text>
+      <line x1="110" y1="80" x2="188" y2="80" stroke="#C9962B" stroke-width="2" marker-end="url(#qah)"></line>
+      <rect x="190" y="50" width="90" height="60" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+      <text x="235" y="87" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="20" font-weight="700" fill="#14181F">4</text>
+      <text x="235" y="128" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">10의 자리</text>
+      <line x1="280" y1="80" x2="358" y2="80" stroke="#C9962B" stroke-width="2" marker-end="url(#qah)"></line>
+      <rect x="360" y="50" width="90" height="60" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+      <text x="405" y="87" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="20" font-weight="700" fill="#14181F">3</text>
+      <text x="405" y="128" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">100의 자리</text>
+      <line x1="450" y1="80" x2="478" y2="80" stroke="#C9962B" stroke-width="2" marker-end="url(#qah)"></line>
+      <text x="510" y="87" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" font-weight="600" fill="#B5502E">None</text>
+    </svg>
+    <p class="cap">head부터 순서대로 읽으면 2, 4, 3 — 즉 뒤에서부터(낮은 자리부터) 숫자가 저장된다. 이렇게 저장하면 <b>덧셈이 항상 head에서 시작</b>되어, 인덱스 접근이나 자릿수 계산 없이 next만 따라가며 계산할 수 있다.</p>
+  </div>
+
+  <p><b>문제.</b> 위와 같은 방식으로 표현된 두 연결 리스트 <code class="mono">l1</code>, <code class="mono">l2</code>가 주어진다. 두 수를 더한 결과를, 같은 방식(head = 1의 자리)으로 표현한 새 연결 리스트로 반환하는 <code class="mono">add_numbers(l1, l2)</code>를 작성하라.</p>
+
+  <div class="card-row">
+    <div class="card"><span class="eyebrow">예시 1</span><p><span class="big">342 + 465</span></p><p class="steel" style="margin-top:.4rem;">= 807</p></div>
+    <div class="card"><span class="eyebrow">예시 2 · 길이가 다름</span><p><span class="big">9999 + 8</span></p><p class="steel" style="margin-top:.4rem;">= 10007</p></div>
+    <div class="card"><span class="eyebrow">예시 3 · 자릿수 증가</span><p><span class="big">999 + 1</span></p><p class="steel" style="margin-top:.4rem;">= 1000</p></div>
+  </div>
+</section>
+
+<section id="requirements">
+  <h2><span class="num">02</span> 요구사항</h2>
+
+  <h3>① int_to_list(n) — 정수를 연결 리스트로 변환</h3>
+  <p><code class="mono">add_numbers</code>는 연결 리스트 두 개를 입력으로 받는다. 그런데 아래 테스트 케이스는 342, 465 같은 <b>정수</b>로 주어져 있으므로, 그 전에 정수를 연결 리스트로 바꿔주는 변환 함수가 먼저 있어야 실제로 테스트를 돌릴 수 있다.</p>
+  <ul class="goal-list">
+    <li><span class="mark">·</span><span>정수 <code class="mono">n</code>을 받아, 각 자리수를 담은 노드들을 <b>head가 1의 자리</b>가 되도록 연결한 리스트의 head를 반환하는 <code class="mono">int_to_list(n)</code>을 작성한다.</span></li>
+    <li><span class="mark">·</span><span><code class="mono">n // 10</code>, <code class="mono">n % 10</code>으로 자리수를 하나씩 뽑아내면서 노드를 이어 붙이는 방식을 권장한다 (문자열로 바꿔 뒤집는 방식은 지양 — 몫/나머지 연산으로 자리수를 분리하는 감각이 이번 과제의 연습 대상이다).</span></li>
+    <li><span class="mark">·</span><span><code class="mono">n = 0</code>인 경우도 처리해야 한다 (자리수 0 하나만 담은 노드 1개짜리 리스트를 반환).</span></li>
+  </ul>
+
+  <h3>② add_numbers(l1, l2) 구현</h3>
+  <ul class="goal-list">
+    <li><span class="mark">·</span><span>3주차에 만든 <code class="mono">Node</code>(data, next)를 그대로 사용한다. <code class="mono">LinkedList</code> 클래스를 확장해서 써도 되고, 함수 하나로 자유롭게 작성해도 된다.</span></li>
+    <li><span class="mark">·</span><span>각 자리를 더하면서 <b>자리 올림(carry)</b>을 다음 자리 계산에 반영해야 한다.</span></li>
+    <li><span class="mark">·</span><span>두 리스트의 <b>길이가 다른 경우</b>를 처리해야 한다 (짧은 쪽이 끝나도 긴 쪽과 carry는 계속 처리).</span></li>
+    <li><span class="mark">·</span><span>마지막 자리까지 다 더한 뒤에도 carry가 남아있으면 <b>새 노드를 추가</b>해서 자릿수가 늘어나야 한다 (예: 999+1=1000).</span></li>
+    <li><span class="mark">·</span><span><code class="mono">l1</code>, <code class="mono">l2</code>를 각각 <b>head부터 한 번씩만</b> 순회해야 한다 — 인덱스로 접근하거나 길이를 미리 세기 위해 따로 순회하는 것은 금지. 전체 시간복잡도가 <code class="mono">O(max(N, M))</code>임을 코드 주석으로 설명할 것.</span></li>
+  </ul>
+
+  <h3>③ print_number(head) — 사람이 읽는 순서로 출력</h3>
+  <p>결과 리스트는 head가 1의 자리이므로, head부터 그대로 출력하면 807이 <code class="mono">7 0 8</code>처럼 거꾸로 나온다. 가장 높은 자리부터 <code class="mono">8 0 7</code> 순서로 출력하는 <code class="mono">print_number(head)</code>를 작성하라.</p>
+  <div class="warn-box"><b>제약 조건.</b> 리스트의 next 포인터를 바꾸거나(reverse) 새 리스트를 뒤집어서 만드는 것은 금지한다. 원본 리스트 구조는 그대로 유지한 채, <b>출력되는 순서만</b> 뒤집혀야 한다.</div>
+  <div class="hint-box"><b>힌트.</b> 리스트를 물리적으로 뒤집지 않고 방문 순서만 뒤집는 방법이 있다. 함수가 자기 자신을 호출하는 방식(재귀)을 떠올려보자 — 재귀 호출이 next를 따라 끝까지 들어갔다가, 되돌아 나오면서(return) 무언가를 하면 어떤 순서로 처리될까?</div>
+
+  <h3>④ 테스트</h3>
+  <p><code class="mono">int_to_list</code>로 l1, l2를 만들고, <code class="mono">add_numbers</code>에 넣어 실행한 뒤, 결과를 <code class="mono">print_number</code>로 출력한다. 아래 세 가지 케이스를 반드시 직접 실행해서 결과를 확인하고, 코드와 함께 실행 결과(출력 캡처 또는 콘솔 로그)를 제출한다.</p>
+  <table class="cmp">
+    <tr><th>케이스</th><th>l1</th><th>l2</th><th>기대 결과</th></tr>
+    <tr><td>자리수 동일</td><td class="mono">342</td><td class="mono">465</td><td class="mono">807</td></tr>
+    <tr><td>길이가 다름</td><td class="mono">9999</td><td class="mono">8</td><td class="mono">10007</td></tr>
+    <tr><td>자릿수 증가</td><td class="mono">999</td><td class="mono">1</td><td class="mono">1000</td></tr>
+  </table>
+</section>
+
+<section id="questions">
+  <h2><span class="num">03</span> 서술형 질문</h2>
+  <p>구현을 마친 뒤, 아래 질문에 각 3~5문장으로 답하시오.</p>
+  <ol class="qlist">
+    <li><code class="mono">add_numbers</code>의 시간복잡도와, 새로 생성하는 노드 수를 기준으로 한 공간복잡도를 각각 설명하시오.</li>
+    <li><code class="mono">print_number</code>를 재귀로 구현했다면, 재귀 호출이 가장 깊어졌을 때 그 깊이는 무엇에 비례하는가? 만약 자릿수가 10만 자리인 매우 큰 수라면 이 방식에 어떤 위험이 있을 수 있는가?</li>
+    <li>만약 문제의 조건이 바뀌어서 head가 "1의 자리"가 아니라 "가장 높은 자리"(예: 342를 head→3→4→2→None으로 저장)로 주어진다면, 지금 작성한 <code class="mono">add_numbers</code>를 그대로 쓸 수 있는가? 왜 그런지, 혹은 왜 안 되는지 설명하시오.</li>
+  </ol>
+</section>
+
+<section id="grading">
+  <h2><span class="num">04</span> 채점 기준</h2>
+  <table class="cmp">
+    <tr><th>항목</th><th>배점</th><th>확인 포인트</th></tr>
+    <tr><td>int_to_list 정확성</td><td class="mono">10%</td><td>모든 자리수를 빠짐없이 변환하는가, n=0인 경우도 처리하는가</td></tr>
+    <tr><td>add_numbers 정확성</td><td class="mono">35%</td><td>carry 처리, 길이가 다른 경우, 자릿수 증가(999+1) 케이스가 모두 정확한가</td></tr>
+    <tr><td>시간복잡도 준수</td><td class="mono">15%</td><td>각 리스트를 한 번씩만 순회하는가, O(max(N,M)) 설명 주석이 있는가</td></tr>
+    <tr><td>print_number 재귀 구현</td><td class="mono">20%</td><td>next 포인터를 바꾸지 않고 재귀만으로 순서를 뒤집었는가</td></tr>
+    <tr><td>테스트 케이스 3종</td><td class="mono">10%</td><td>표에 제시된 세 케이스를 실제로 실행하고 결과를 제출했는가</td></tr>
+    <tr><td>서술형 질문</td><td class="mono">10%</td><td>복잡도·재귀 깊이·역방향 조건 세 질문에 근거 있게 답했는가</td></tr>
+  </table>
+</section>
+
+<section id="selfcheck">
+  <h2><span class="num">05</span> 제출 전 자가 점검</h2>
+  <p>제출하기 전에 아래 항목을 스스로 점검해보자.</p>
+  <ul class="check-list" id="checklist">
+    <li><input type="checkbox"><span>int_to_list(n)이 모든 자리수를 빠짐없이 변환하고, n=0인 경우도 처리한다.</span></li>
+    <li><input type="checkbox"><span>두 리스트의 자리수를 더하면서 carry를 다음 자리로 넘겼다.</span></li>
+    <li><input type="checkbox"><span>l1, l2 길이가 다른 경우(9999 + 8)를 테스트해서 정확한 결과를 확인했다.</span></li>
+    <li><input type="checkbox"><span>마지막 carry로 자릿수가 늘어나는 경우(999 + 1)를 테스트해서 정확한 결과를 확인했다.</span></li>
+    <li><input type="checkbox"><span>l1, l2를 각각 한 번씩만 순회했고, 그 이유를 주석으로 O(max(N,M))라고 설명했다.</span></li>
+    <li><input type="checkbox"><span>print_number에서 next 포인터를 바꾸거나 리스트를 뒤집지 않았다.</span></li>
+    <li><input type="checkbox"><span>세 가지 서술형 질문(복잡도, 재귀 깊이, 역방향 조건)에 모두 답했다.</span></li>
+  </ul>
+  <div id="progressBar"><div id="progressFill"></div></div>
+  <p class="steel" id="progressText" style="margin-top:.6rem; font-size:.85rem;">0 / 7 완료</p>
+</section>
+
+<footer>
+  <span class="eyebrow">제출 안내</span>
+  <p style="margin:.6rem 0 0;">구현 코드(.ipynb)와 세 가지 테스트 케이스 실행 결과, 서술형 질문 답안을 함께 제출한다. 제출 형식과 기한은 강의 계획에 따른다.</p>
+</footer>
+
+<script>
+(function(){
+  const items = document.querySelectorAll('#checklist li');
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+  function update(){
+    let checked = 0;
+    items.forEach(li => { if(li.querySelector('input').checked) checked++; });
+    if(fill) fill.style.width = (items.length ? (checked / items.length * 100) : 0) + '%';
+    if(text) text.textContent = checked + ' / ' + items.length + ' 완료';
+  }
+  items.forEach(li => {
+    const input = li.querySelector('input');
+    li.addEventListener('click', (e) => {
+      if(e.target !== input) input.checked = !input.checked;
+      li.classList.toggle('checked', input.checked);
+      update();
+    });
+  });
+  update();
+})();
+</script>
+
+</body>
+</html>

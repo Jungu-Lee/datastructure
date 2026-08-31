@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F7F9FC">
+<meta name="color-scheme" content="light">
+<title>연결 리스트 버그 헌트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14181F; --panel:#FFFFFF; --panel-2:#F5F7FB;
+    --chalk:#14181F; --steel:#4A5468; --amber:#C9962B; --red:#B5502E;
+    --green:#0F7A73; --line:#D8DEE9;
+    --radius:16px;
+    --shadow: 0 1px 2px rgba(20,24,31,0.04), 0 8px 24px -12px rgba(20,24,31,0.12);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; background:#F7F9FC; min-height:100%;}
+  body{
+    margin:0;
+    background-color:#F7F9FC;
+    background-image:
+      linear-gradient(rgba(47,75,124,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(47,75,124,0.045) 1px, transparent 1px);
+    background-size:42px 42px;
+    color:var(--chalk); font-family:'Inter', sans-serif; line-height:1.7; -webkit-font-smoothing:antialiased;
+    min-height:100vh; min-height:100dvh;
+  }
+  a{color:inherit;}
+  :focus-visible{outline:2px solid var(--amber); outline-offset:3px;}
+  .eyebrow{font-family:'JetBrains Mono', monospace; letter-spacing:.1em; text-transform:uppercase; font-size:.72rem; color:var(--amber); font-weight:600;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+  .hero{padding:4rem 1.5rem 2.6rem; max-width:900px; margin:0 auto; border-bottom:1px solid var(--line);}
+  .board-tag{display:inline-flex; align-items:center; gap:.5rem; font-family:'JetBrains Mono',monospace; font-size:.78rem; color:var(--steel); background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:.3rem .8rem; margin-bottom:1.4rem; box-shadow:var(--shadow); flex-wrap:wrap;}
+  .board-tag .dot{width:7px;height:7px;border-radius:50%;background:var(--amber); box-shadow:0 0 8px rgba(201,150,43,0.5);}
+  .board-tag .sep{color:var(--line);}
+  .board-tag .hi{color:var(--red); font-weight:700;}
+  h1{font-family:'Fraunces', serif; font-size:clamp(1.9rem, 4.6vw, 2.7rem); line-height:1.3; margin:0 0 .7rem; font-weight:700; color:var(--ink);}
+  .hero p.lede{color:var(--steel); font-size:1.03rem; max-width:62ch; margin:0;}
+  section{max-width:900px; margin:0 auto; padding:3rem 1.5rem; border-bottom:1px solid var(--line);}
+  h2{font-family:'Fraunces', serif; font-size:1.5rem; margin:0 0 1.3rem; display:flex; align-items:baseline; gap:.6rem; color:var(--ink); font-weight:600;}
+  h2 .num{color:var(--amber); font-family:'JetBrains Mono',monospace; font-size:1.05rem;}
+  h3{font-family:'Fraunces', serif; font-size:1.06rem; margin:1.8rem 0 .8rem; color:var(--ink); font-weight:600;}
+  p{color:#2C3444;}
+  .steel{color:var(--steel);}
+  .goal-list{list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.7rem;}
+  .goal-list li{display:flex; gap:.7rem; align-items:flex-start; background:var(--panel-2); border-radius:8px; padding:.8rem 1rem; font-size:.94rem; color:var(--ink);}
+  .goal-list li .mark{color:var(--amber); font-family:'JetBrains Mono',monospace; flex:0 0 auto; font-weight:700;}
+  pre{background:#1B2130; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem; overflow-x:auto; font-size:.84rem; font-family:'JetBrains Mono', monospace; line-height:1.7; color:#E7ECF5;}
+  code{font-family:'JetBrains Mono', monospace;}
+  .kw{color:#7FB0E0;} .fn{color:#E0C26B;} .cm{color:#8593A8; font-style:italic;} .str{color:#8FCA8F;}
+  table.cmp{width:100%; border-collapse:collapse; margin-top:1rem; font-size:.9rem;}
+  table.cmp th, table.cmp td{border:1px solid var(--line); padding:.6rem .8rem; text-align:left; vertical-align:top;}
+  table.cmp th{background:var(--panel-2); color:var(--steel); font-family:'JetBrains Mono',monospace; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em;}
+  table.cmp td{background:var(--panel);}
+  .inv-grid{display:grid; gap:.9rem; margin-top:1.1rem;}
+  .inv{display:grid; grid-template-columns:auto 1fr; gap:.9rem; align-items:start; background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--green); border-radius:10px; padding:1rem 1.2rem; box-shadow:var(--shadow);}
+  .inv .tag{font-family:'JetBrains Mono',monospace; font-size:.95rem; font-weight:700; color:var(--green);}
+  .inv p{margin:0; font-size:.93rem;}
+  .inv p .t{font-weight:600; color:var(--ink);}
+  .node-diagram{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.5rem 1.6rem 1.3rem; margin:1.4rem 0; box-shadow:var(--shadow); overflow-x:auto;}
+  .node-diagram .eyebrow{display:block; margin-bottom:.9rem;}
+  .node-diagram svg{display:block; min-width:600px; width:100%; height:auto;}
+  .node-diagram .cap{margin-top:1rem; font-size:.85rem; color:var(--steel);}
+  .node-diagram .cap b{color:#8A6B1F;}
+  .warn-box{background:#F8E9E2; border:1px solid #E3B7A2; border-left:3px solid var(--red); border-radius:8px; padding:1rem 1.2rem; margin:1.2rem 0; font-size:.92rem; color:#7A3520;}
+  .warn-box b{color:var(--red);}
+  .ai-notice{background:#F8E9E2; border:1px solid #E3B7A2; border-left:4px solid var(--red); border-radius:10px; padding:1.2rem 1.4rem; margin:0 0 1.6rem;}
+  .ai-notice .chip{display:inline-block; font-family:'JetBrains Mono',monospace; font-size:.72rem; font-weight:700; letter-spacing:.08em; color:#fff; background:var(--red); border-radius:999px; padding:.2rem .7rem; margin-bottom:.7rem;}
+  .ai-notice p{margin:0 0 .7rem; font-size:.93rem; color:#7A3520;}
+  .ai-notice p:last-child{margin-bottom:0;}
+  .ai-notice b{color:var(--red);}
+  .ai-notice ul{margin:.2rem 0 .8rem; padding-left:1.2rem; font-size:.9rem; color:#7A3520;}
+  .ai-notice li{margin:.3rem 0;}
+  .ai-notice .rule-ref{font-size:.85rem; color:#8A5540; border-top:1px dashed #E3B7A2; padding-top:.7rem;}
+  .hint-box{background:#FBF1DE; border:1px solid #EBD9AD; border-left:3px solid var(--amber); border-radius:8px; padding:1rem 1.2rem; margin:1.2rem 0; font-size:.92rem; color:#5C4610;}
+  .hint-box b{color:#8A6B1F;}
+  ol.qlist{padding-left:1.3rem; margin:1rem 0 0; display:grid; gap:.9rem;}
+  ol.qlist li{color:var(--ink); font-size:.96rem;}
+  ol.qlist li::marker{color:var(--amber); font-family:'JetBrains Mono',monospace; font-weight:700;}
+  .check-list{list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.7rem;}
+  .check-list li{display:flex; gap:.8rem; align-items:flex-start; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:.9rem 1rem; cursor:pointer; box-shadow:var(--shadow);}
+  .check-list input{margin-top:.25rem; accent-color:var(--green); width:16px; height:16px; flex:0 0 auto;}
+  .check-list li.checked{border-color:rgba(15,122,115,0.4); background:#E2F3F1;}
+  .check-list li.checked span{color:var(--steel); text-decoration:line-through;}
+  .check-list span{font-size:.92rem; color:var(--ink);}
+  #progressBar{height:4px; background:var(--panel-2); border-radius:999px; overflow:hidden; margin-top:1.4rem;}
+  #progressFill{height:100%; width:0%; background:linear-gradient(90deg, var(--green), var(--amber)); transition:width .3s;}
+  .terminal{background:#1B2130; border:1px solid var(--line); border-radius:10px; padding:1.1rem 1.3rem; font-family:'JetBrains Mono',monospace; font-size:.83rem; line-height:1.9; color:#E7ECF5; overflow-x:auto; margin-top:1rem;}
+  .terminal .lbl{color:#8593A8;}
+  .terminal .bad{color:#E0958A;}
+  footer{max-width:900px; margin:0 auto; padding:3rem 1.5rem 5rem; color:var(--steel); font-size:.88rem;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="board-tag"><span class="dot"></span>WEEK 03 · 과제 2<span class="sep">|</span>난이도 <span class="hi">상</span><span class="sep">|</span>예상 소요 약 1시간</div>
+  <h1>연결 리스트 버그 헌트</h1>
+  <p class="lede">이번에는 새로 만드는 것이 아니라, <b>이미 짜여 있는 코드를 읽고 고친다.</b> 아래 <code class="mono">LinkedList</code> 클래스는 겉보기엔 그럴듯하게 돌아가지만 정확히 <b>5개의 버그</b>가 숨어 있다. 실무에서 연결 리스트가 무너지는 방식이 바로 이런 모습이다 — 에러 없이 조용히 노드를 잃어버린다.</p>
+</header>
+
+<section id="scenario">
+  <h2><span class="num">01</span> 상황</h2>
+  <div class="ai-notice">
+    <span class="chip">AI 사용 금지</span>
+    <p>이 과제는 <b>AI 도구(챗봇 등)의 사용을 전면 금지</b>한다. 주어진 코드를 AI에 입력하면 버그 5개의 위치와 원인을 즉시 알려주기 때문에, 이 과제가 측정하려는 능력 — <b>남이 쓴 코드를 읽고 불변식과 대조해 결함을 스스로 찾아내는 능력</b> — 이 전혀 측정되지 않는다.</p>
+    <ul>
+      <li>주어진 코드의 전체 또는 일부를 AI에 입력하는 행위</li>
+      <li>버그의 위치·원인·수정 방법을 AI에게 묻는 행위</li>
+      <li>수정 코드나 회귀 테스트 코드를 AI에게 생성받는 행위</li>
+      <li>서술형 답안을 AI로 작성하는 행위</li>
+    </ul>
+    <p class="rule-ref">위반 시 「자료구조 교수학습 및 평가운영 계획서」의 처리 방안을 따른다 — 1차 위반은 재작성 및 해당 과제 50% 감점, 2차 위반 또는 명백한 대필은 0점 처리. 다만 제출 전 스스로 신고한 경우에는 해당 부분을 본인이 다시 작성하는 조건으로 감경한다.</p>
+  </div>
+
+  <p>선배가 작성해둔 <code class="mono">LinkedList</code> 클래스를 인수인계 받았다. <code class="mono">Node</code> 클래스와 <code class="mono">append()</code>는 정상 동작이 확인되었고, 나머지 메서드 어딘가에 버그가 <b>정확히 5개</b> 있다. 각 메서드가 무엇을 해야 하는지는 docstring에 적혀 있다.</p>
+  <p>먼저 주어진 파일을 그대로 실행해보면 다음과 같은 출력이 나온다.</p>
+  <div class="terminal">
+<span class="lbl">append 후      :</span> <span class="bad">None</span> -&gt; 10 -&gt; 20 -&gt; 30 -&gt; None<br>
+<span class="lbl">get(0)         :</span> <span class="bad">20</span><br>
+<span class="lbl">insert_at(3,40):</span> None -&gt; 10 -&gt; 20 -&gt; 30 -&gt; 40 -&gt; None<br>
+<span class="lbl">append(50) 후  :</span> None -&gt; 10 -&gt; 20 -&gt; 30 -&gt; <span class="bad">50</span> -&gt; None
+  </div>
+  <div class="warn-box"><b>주의.</b> 이 출력에 드러나는 버그는 전부가 아니다. 위 드라이버가 건드리지 않는 메서드에도 버그가 숨어 있으니, 출력만 보고 판단하지 말고 <b>모든 메서드를 불변식과 대조</b>하며 읽어야 한다.</div>
+</section>
+
+<section id="invariants">
+  <h2><span class="num">02</span> 이 클래스가 지켜야 할 불변식</h2>
+  <p>버그를 "느낌"으로 찾으면 놓친다. 이 클래스는 아래 네 가지 약속을 <b>모든 연산 전후에 항상</b> 지켜야 한다. 각 메서드를 한 줄씩 읽으면서 "이 코드가 이 약속을 깨뜨리는가?"를 묻는 것이 이번 과제의 방법이다.</p>
+
+  <div class="inv-grid">
+    <div class="inv"><span class="tag">①</span><p><span class="t">더미 노드는 데이터가 아니다.</span> <code class="mono">dummy</code>는 값 없는 가짜 첫 칸이며, 리스트의 진짜 첫 노드는 언제나 <code class="mono">dummy.next</code>다. 사용자에게 <code class="mono">dummy</code>의 내용이 노출되어서는 안 된다.</p></div>
+    <div class="inv"><span class="tag">②</span><p><span class="t">tail은 항상 마지막 노드를 가리킨다.</span> 리스트가 비어 있으면 <code class="mono">tail</code>은 <code class="mono">dummy</code>를 가리킨다. 노드를 넣거나 뺀 뒤에도 이 관계가 유지되어야 다음 <code class="mono">append()</code>가 O(1)로 정확히 동작한다.</p></div>
+    <div class="inv"><span class="tag">③</span><p><span class="t">연결은 이전 노드의 next로만 바뀐다.</span> <code class="mono">dummy</code>에서 <code class="mono">next</code>를 따라가면 모든 노드를 정확히 한 번씩 지나 <code class="mono">None</code>에 도달해야 한다. 노드를 실제로 빼내거나 끼우는 일은 <b>이전 노드의 next를 다시 연결</b>하는 것으로만 이루어진다.</p></div>
+    <div class="inv"><span class="tag">④</span><p><span class="t">인덱스는 0부터 시작한다.</span> <code class="mono">index = 0</code>은 <code class="mono">dummy.next</code>, 즉 진짜 첫 노드를 뜻한다. 빈 리스트에 대한 연산은 조용히 실패하지 않고 docstring이 약속한 예외를 발생시켜야 한다.</p></div>
+  </div>
+
+  <div class="node-diagram">
+    <span class="eyebrow">불변식을 모두 지킨 정상 상태 · append(10), append(20), append(30) 이후</span>
+    <svg viewBox="0 0 720 200" role="img" aria-label="정상 상태 다이어그램: dummy 다음에 10, 20, 30 노드가 이어지고, tail은 마지막 노드 30을 가리키며 30의 next는 None이다.">
+      <defs><marker id="iah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9962B"></path></marker></defs>
+
+      <text x="85" y="18" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#4A5468">self.dummy</text>
+      <line x1="85" y1="24" x2="85" y2="68" stroke="#4A5468" stroke-width="1.6" marker-end="url(#iah)"></line>
+      <text x="640" y="18" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#C9962B">self.tail</text>
+      <line x1="640" y1="24" x2="640" y2="68" stroke="#C9962B" stroke-width="1.6" marker-end="url(#iah)"></line>
+
+      <rect x="30" y="70" width="130" height="60" rx="8" fill="#F5F7FB" stroke="#D8DEE9" stroke-dasharray="4 3"></rect>
+      <line x1="95" y1="70" x2="95" y2="130" stroke="#D8DEE9"></line>
+      <text x="62" y="105" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="12" font-style="italic" fill="#8A93A6">None</text>
+      <circle cx="128" cy="100" r="4" fill="#C9962B"></circle>
+      <line x1="134" y1="100" x2="196" y2="100" stroke="#C9962B" stroke-width="2" marker-end="url(#iah)"></line>
+      <text x="95" y="148" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">dummy · 값 아님 ①</text>
+
+      <rect x="198" y="70" width="130" height="60" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+      <line x1="263" y1="70" x2="263" y2="130" stroke="#D8DEE9"></line>
+      <text x="230" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">10</text>
+      <circle cx="296" cy="100" r="4" fill="#C9962B"></circle>
+      <line x1="302" y1="100" x2="364" y2="100" stroke="#C9962B" stroke-width="2" marker-end="url(#iah)"></line>
+      <text x="263" y="148" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">index 0 ④</text>
+
+      <rect x="366" y="70" width="130" height="60" rx="8" fill="#FFFFFF" stroke="#D8DEE9"></rect>
+      <line x1="431" y1="70" x2="431" y2="130" stroke="#D8DEE9"></line>
+      <text x="398" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#14181F">20</text>
+      <circle cx="464" cy="100" r="4" fill="#C9962B"></circle>
+      <line x1="470" y1="100" x2="532" y2="100" stroke="#C9962B" stroke-width="2" marker-end="url(#iah)"></line>
+      <text x="431" y="148" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">index 1</text>
+
+      <rect x="534" y="70" width="130" height="60" rx="8" fill="#FFFFFF" stroke="#C9962B" stroke-width="1.5"></rect>
+      <line x1="599" y1="70" x2="599" y2="130" stroke="#C9962B" opacity=".5"></line>
+      <text x="566" y="106" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="16" font-weight="600" fill="#8A6B1F">30</text>
+      <circle cx="632" cy="100" r="4" fill="none" stroke="#B5502E" stroke-dasharray="2 2"></circle>
+      <text x="632" y="86" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#B5502E">None ③</text>
+      <text x="599" y="148" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#4A5468">마지막 노드 ②</text>
+    </svg>
+    <p class="cap">이것이 <b>정상</b> 상태다. <code class="mono">dummy</code>는 값으로 세지 않고(①), <code class="mono">tail</code>은 마지막 노드 30을 가리키며(②), <code class="mono">dummy</code>에서 next를 따라가면 모든 노드를 한 번씩 지나 None에 닿고(③), 진짜 첫 노드가 index 0이다(④). 버그가 있는 메서드는 이 그림 중 <b>어느 화살표를 잘못 옮기는지</b>를 생각하며 찾아라.</p>
+  </div>
+</section>
+
+<section id="code">
+  <h2><span class="num">03</span> 주어진 코드</h2>
+  <p>함께 배포된 <code class="mono">3주차_과제2_buggy_linked_list.py</code>의 내용이다. <code class="mono">Node</code>와 <code class="mono">append()</code>는 정상이다.</p>
+<pre><code><span class="kw">class</span> <span class="fn">LinkedList</span>:
+    <span class="str">"""더미 노드 + tail 포인터 기반 단일 연결 리스트."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.dummy = Node(<span class="kw">None</span>)
+        self.tail = self.dummy
+
+    <span class="kw">def</span> <span class="fn">append</span>(self, value):
+        <span class="str">"""리스트 맨 뒤에 value를 O(1)로 추가한다."""</span>
+        new_node = Node(value)
+        self.tail.next = new_node
+        self.tail = new_node
+
+    <span class="kw">def</span> <span class="fn">insert_at</span>(self, index, value):
+        <span class="str">"""index 위치 앞에 value를 삽입한다. index == 길이면 맨 뒤에 붙는다."""</span>
+        new_node = Node(value)
+        prev = self.dummy
+        <span class="kw">for</span> _ <span class="kw">in</span> range(index):
+            prev = prev.next
+        new_node.next = prev.next
+        prev.next = new_node
+
+    <span class="kw">def</span> <span class="fn">delete_value</span>(self, value):
+        <span class="str">"""value를 가진 첫 노드를 삭제한다. 삭제하면 True, 없으면 False."""</span>
+        prev, cur = self.dummy, self.dummy.next
+        <span class="kw">while</span> cur:
+            <span class="kw">if</span> cur.data == value:
+                <span class="kw">if</span> cur <span class="kw">is</span> self.tail:
+                    self.tail = prev
+                cur = cur.next
+                <span class="kw">return</span> <span class="kw">True</span>
+            prev, cur = cur, cur.next
+        <span class="kw">return</span> <span class="kw">False</span>
+
+    <span class="kw">def</span> <span class="fn">get</span>(self, index):
+        <span class="str">"""index번째(0부터 시작) 노드의 데이터를 반환한다."""</span>
+        cur = self.dummy.next
+        <span class="kw">for</span> _ <span class="kw">in</span> range(index + 1):
+            cur = cur.next
+        <span class="kw">return</span> cur.data
+
+    <span class="kw">def</span> <span class="fn">pop_front</span>(self):
+        <span class="str">"""맨 앞 노드를 제거하고 그 데이터를 반환한다.
+        리스트가 비어 있으면 IndexError를 발생시켜야 한다."""</span>
+        first = self.dummy.next
+        self.dummy.next = first.next
+        <span class="kw">if</span> first <span class="kw">is</span> self.tail:
+            self.tail = self.dummy
+        <span class="kw">return</span> first.data
+
+    <span class="kw">def</span> <span class="fn">__iter__</span>(self):
+        <span class="str">"""head(진짜 첫 노드)부터 마지막 노드까지 데이터를 순서대로 내놓는다."""</span>
+        cur = self.dummy
+        <span class="kw">while</span> cur:
+            <span class="kw">yield</span> cur.data
+            cur = cur.next</code></pre>
+</section>
+
+<section id="requirements">
+  <h2><span class="num">04</span> 요구사항</h2>
+
+  <h3>① 버그 리포트 작성 (5개)</h3>
+  <p>찾아낸 버그 5개를 아래 형식의 표로 정리한다. <b>"증상"과 "원인"을 반드시 구분해서</b> 쓸 것 — 증상은 눈에 보이는 잘못된 동작이고, 원인은 어떤 줄이 어떤 불변식을 어떻게 깨뜨렸는지다.</p>
+  <table class="cmp">
+    <tr><th>#</th><th>메서드</th><th>증상</th><th>원인 (깨진 불변식)</th><th>수정 내용</th></tr>
+    <tr><td class="mono">1</td><td class="mono">예) __iter__</td><td>순회하면 맨 앞에 None이 끼어든다</td><td>더미를 데이터로 취급 — 불변식 ①</td><td class="mono">cur = self.dummy → self.dummy.next</td></tr>
+    <tr><td class="mono">2~5</td><td class="steel" colspan="4">직접 채운다</td></tr>
+  </table>
+  <div class="hint-box"><b>힌트.</b> 5개 중 최소 하나는 <b>에러를 내지 않고 조용히 데이터를 잃어버리는</b> 종류다. 이런 버그는 "실행이 되니까 맞겠지"로 넘어가면 절대 못 잡는다. 각 메서드를 실행한 <u>직후에 tail이 어디를 가리키고 있는지</u> 손으로 그려보면 드러난다.</div>
+
+  <h3>② 수정 코드 제출</h3>
+  <ul class="goal-list">
+    <li><span class="mark">·</span><span>버그 5개를 모두 수정한 <code class="mono">LinkedList</code> 전체 코드를 제출한다.</span></li>
+    <li><span class="mark">·</span><span>수정한 줄마다 <code class="mono"># [버그 N 수정] ...</code> 형식의 주석으로 <b>왜 이렇게 고쳤는지</b> 한 줄 설명을 남긴다.</span></li>
+    <li><span class="mark">·</span><span>메서드의 시간복잡도를 원래보다 나쁘게 만들지 말 것 — 예를 들어 <code class="mono">append()</code>는 수정 후에도 반드시 O(1)이어야 한다. (tail을 버리고 매번 순회하는 식의 "고침"은 인정하지 않는다.)</span></li>
+  </ul>
+
+  <h3>③ 회귀 테스트 작성 (5개 이상)</h3>
+  <p>버그마다 <b>그 버그를 정확히 잡아내는 테스트</b>를 하나씩 작성한다. 좋은 회귀 테스트의 조건은 다음과 같다.</p>
+  <ul class="goal-list">
+    <li><span class="mark">·</span><span><b>수정 전 코드에서는 반드시 실패</b>하고, <b>수정 후에는 통과</b>해야 한다. (둘 다 확인해서 제출할 것)</span></li>
+    <li><span class="mark">·</span><span><code class="mono">assert</code>로 기대값을 명시한다. 화면에 출력만 하고 눈으로 확인하는 것은 테스트가 아니다.</span></li>
+    <li><span class="mark">·</span><span>함수 이름만 읽어도 무엇을 검증하는지 알 수 있게 짓는다. (예: <code class="mono">test_insert_at_end_keeps_tail_valid</code>)</span></li>
+  </ul>
+  <div class="warn-box"><b>가장 중요한 채점 포인트.</b> "수정 전 코드에서 실패한다"를 확인하지 않은 테스트는 점수를 받지 못한다. 버그를 못 잡는 테스트는 통과해도 아무것도 보장하지 않기 때문이다.</div>
+</section>
+
+<section id="questions">
+  <h2><span class="num">05</span> 서술형 질문</h2>
+  <p>아래 질문에 각 3~5문장으로 답하시오.</p>
+  <ol class="qlist">
+    <li>이번에 찾은 버그 중 <b>가장 발견하기 어려웠던 것</b>을 하나 고르고, 왜 어려웠는지 설명하시오. (에러가 나지 않아서? 특정 순서로 호출할 때만 드러나서?)</li>
+    <li>버그 중에는 <code class="mono">tail</code> 포인터와 관련된 것이 있다. <code class="mono">tail</code>을 아예 두지 않고 <code class="mono">append()</code>마다 head부터 끝까지 순회하도록 만들면 이 부류의 버그는 원천적으로 사라진다. 그럼에도 <code class="mono">tail</code>을 유지하는 이유는 무엇인가? <b>얻는 것과 잃는 것</b>을 복잡도 관점에서 설명하시오.</li>
+    <li>더미 노드는 "빈 리스트 예외를 없애준다"고 배웠다. 그런데 이번 코드에는 더미 노드가 있음에도 빈 리스트에서 터지는 버그가 존재했다. 더미 노드가 <b>없애주는 예외</b>와 <b>없애주지 못하는 예외</b>는 각각 어떤 것인지 구분해서 설명하시오.</li>
+  </ol>
+</section>
+
+<section id="grading">
+  <h2><span class="num">06</span> 채점 기준</h2>
+  <table class="cmp">
+    <tr><th>항목</th><th>배점</th><th>확인 포인트</th></tr>
+    <tr><td>버그 발견</td><td class="mono">25%</td><td>5개를 모두 찾았는가 (개당 5%)</td></tr>
+    <tr><td>버그 리포트 품질</td><td class="mono">15%</td><td>증상과 원인을 구분했는가, 깨진 불변식을 정확히 지목했는가</td></tr>
+    <tr><td>수정 정확성</td><td class="mono">25%</td><td>5개가 모두 올바르게 수정되었는가, append()가 여전히 O(1)인가</td></tr>
+    <tr><td>회귀 테스트</td><td class="mono">25%</td><td>수정 전 실패·수정 후 통과를 확인했는가, assert로 기대값을 명시했는가</td></tr>
+    <tr><td>서술형 질문</td><td class="mono">10%</td><td>세 질문에 근거 있게 답했는가</td></tr>
+  </table>
+</section>
+
+<section id="selfcheck">
+  <h2><span class="num">07</span> 제출 전 자가 점검</h2>
+  <p>제출하기 전에 아래 항목을 스스로 점검해보자.</p>
+  <ul class="check-list" id="checklist">
+    <li><input type="checkbox"><span>버그 5개를 모두 찾았고, 각각 어떤 불변식을 깨뜨렸는지 지목했다.</span></li>
+    <li><input type="checkbox"><span>증상(눈에 보이는 잘못된 동작)과 원인(잘못된 코드 줄)을 구분해서 적었다.</span></li>
+    <li><input type="checkbox"><span>수정한 줄마다 왜 그렇게 고쳤는지 주석을 남겼다.</span></li>
+    <li><input type="checkbox"><span>수정 후에도 append()가 O(1)인지 확인했다 (tail을 버리지 않았다).</span></li>
+    <li><input type="checkbox"><span>회귀 테스트를 수정 전 코드에 돌려서 실제로 실패하는 것을 확인했다.</span></li>
+    <li><input type="checkbox"><span>회귀 테스트를 수정 후 코드에 돌려서 전부 통과하는 것을 확인했다.</span></li>
+    <li><input type="checkbox"><span>세 가지 서술형 질문에 모두 답했다.</span></li>
+    <li><input type="checkbox"><span>버그 탐색·수정·테스트 작성 전 과정에서 AI 도구를 사용하지 않았다.</span></li>
+  </ul>
+  <div id="progressBar"><div id="progressFill"></div></div>
+  <p class="steel" id="progressText" style="margin-top:.6rem; font-size:.85rem;">0 / 8 완료</p>
+</section>
+
+<footer>
+  <span class="eyebrow">제출 안내</span>
+  <p style="margin:.6rem 0 0;">버그 리포트 표, 수정 코드, 회귀 테스트와 그 실행 결과(수정 전·후 각각), 서술형 답안을 하나의 <code class="mono">.ipynb</code> 파일에 정리해 제출한다. 제출 형식과 기한은 강의 계획에 따른다.</p>
+</footer>
+
+<script>
+(function(){
+  const items = document.querySelectorAll('#checklist li');
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+  function update(){
+    let checked = 0;
+    items.forEach(li => { if(li.querySelector('input').checked) checked++; });
+    if(fill) fill.style.width = (items.length ? (checked / items.length * 100) : 0) + '%';
+    if(text) text.textContent = checked + ' / ' + items.length + ' 완료';
+  }
+  items.forEach(li => {
+    const input = li.querySelector('input');
+    li.addEventListener('click', (e) => {
+      if(e.target !== input) input.checked = !input.checked;
+      li.classList.toggle('checked', input.checked);
+      update();
+    });
+  });
+  update();
+})();
+</script>
+
+</body>
+</html>

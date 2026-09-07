@@ -84,7 +84,8 @@
   .cdiag-svg{width:100%; max-width:260px; height:auto;}
   .cydiag-svg{width:100%; max-width:520px; height:auto;}
   .codewrap{margin-top:1rem;}
-  .code-sync .cl{display:block; padding:.12rem .5rem; border-radius:5px; transition:background .25s ease, box-shadow .25s ease;}
+  .code-sync{line-height:1.3;}
+  .code-sync .cl{display:block; padding:.02rem .5rem; border-radius:5px; transition:background .25s ease, box-shadow .25s ease;}
   .code-sync .cl.hl{background:rgba(201,150,43,0.22); box-shadow:inset 3px 0 0 var(--amber);}
   .step{display:none;}
   .step.active{display:block; animation:fade .3s ease;}
@@ -750,6 +751,134 @@ survivor, order = josephus_circular(people, k=2)
     <div class="q-feedback"></div>
     <div class="reveal"><b>⑧ _add_front</b> — get()으로 값을 읽는 것도 "사용"이므로, 조회 직후 그 노드를 다시 맨 앞(head)으로 옮겨 최신 상태로 갱신해야 한다.<br><b>⑨ tail</b> — 캐시가 가득 찼을 때 지워야 할 것은 가장 오래 사용되지 않은 노드, 즉 리스트의 tail이다.<br><b>⑩ key</b> — 노드를 삭제하면서 해시맵에서도 같이 지우려면, 그 노드가 어떤 key에 대응하는지 노드 자신에 저장해둔 key가 필요하다.<br><b>⑪ key</b> — 새로 만든 노드를 해시맵에 등록할 때 키는 매개변수로 받은 key 그대로다.</div>
   </div>
+
+  <h3 style="margin-top:2.2rem;">직접 확인해보기: 테스트 코드로 자가 검증</h3>
+  <p>위에서 완성한 코드가 실제로 맞는지, AI나 선생님에게 묻지 않고 스스로 확인할 수 있는 테스트 스크립트다. 총 16개 항목을 검사하며, 각 항목은 "왜 이게 맞아야 하는지"를 이름에 담고 있다 — 단순히 통과 여부만 보지 말고, 실패했다면 어떤 조건이 왜 깨졌는지 코드를 다시 읽어보자.</p>
+
+  <div class="callout">
+    <b>사용 방법</b><br>
+    ① 지금까지 완성한 <code class="mono">Node</code>, <code class="mono">reverse_list</code>, <code class="mono">has_cycle</code>, <code class="mono">DoublyLinkedList</code>, <code class="mono">CircularLinkedList</code>, <code class="mono">LRUCache</code> 코드를 새 파이썬 파일(예: <code class="mono">test_week04.py</code>) 맨 위에 붙여넣는다.<br>
+    ② 아래 테스트 코드를 그 아래에 이어 붙인다.<br>
+    ③ 터미널에서 <code class="mono">python3 test_week04.py</code>로 실행하고, <code class="mono">[PASS]</code>/<code class="mono">[FAIL]</code> 목록과 마지막 줄의 통과 개수를 확인한다.
+  </div>
+
+  <div class="codewrap">
+    <pre><code><span class="cm"># 04주차 실습 자가 검증 테스트</span>
+<span class="cm"># 사용법:</span>
+<span class="cm">#   1) 위에서 완성한 reverse_list, has_cycle, DoublyLinkedList,</span>
+<span class="cm">#      CircularLinkedList, LRUCache 코드를 이 파일 위쪽에 붙여넣는다.</span>
+<span class="cm">#   2) 터미널에서 python3 test_week04.py 로 실행한다.</span>
+<span class="cm">#   3) [PASS]/[FAIL] 목록과 마지막 줄의 통과 개수를 확인한다.</span>
+
+<span class="cm"># ---- 테스트 도우미 함수 (직접 작성하지 않아도 됨) ----</span>
+<span class="kw">def</span> <span class="fn">build_list</span>(values):
+    <span class="cm"># [1, 2, 3] 같은 파이썬 리스트를 단일 연결 리스트로 만들고 head를 반환한다</span>
+    head, tail = <span class="kw">None</span>, <span class="kw">None</span>
+    <span class="kw">for</span> v <span class="kw">in</span> values:
+        node = Node(v)
+        <span class="kw">if</span> head <span class="kw">is</span> <span class="kw">None</span>:
+            head = tail = node
+        <span class="kw">else</span>:
+            tail.next = node
+            tail = node
+    <span class="kw">return</span> head
+
+<span class="kw">def</span> <span class="fn">to_list</span>(head):
+    <span class="cm"># 연결 리스트를 순회하며 파이썬 리스트로 바꾼다 (결과를 눈으로 비교하기 위함)</span>
+    result = []
+    <span class="kw">while</span> head:
+        result.append(head.data)
+        head = head.next
+    <span class="kw">return</span> result
+
+<span class="kw">def</span> <span class="fn">check</span>(name, condition):
+    <span class="cm"># 조건이 참이면 PASS, 거짓이면 FAIL을 출력하고 통과 여부를 반환한다</span>
+    status = <span class="str">&quot;PASS&quot;</span> <span class="kw">if</span> condition <span class="kw">else</span> <span class="str">&quot;FAIL&quot;</span>
+    print(f<span class="str">&quot;[{status}] {name}&quot;</span>)
+    <span class="kw">return</span> condition
+
+results = []
+
+<span class="cm"># ============================================================</span>
+<span class="cm"># 1) reverse_list — next 필드를 다시 써서 방향을 뒤집는지 확인</span>
+<span class="cm"># ============================================================</span>
+head = build_list([1, 2, 3, 4, 5])
+results.append(check(
+    <span class="str">&quot;reverse_list: [1,2,3,4,5] -&gt; [5,4,3,2,1]&quot;</span>,
+    to_list(reverse_list(head)) == [5, 4, 3, 2, 1]
+))
+results.append(check(
+    <span class="str">&quot;reverse_list: 노드 1개도 그대로 처리되는가&quot;</span>,
+    to_list(reverse_list(build_list([1]))) == [1]
+))
+results.append(check(
+    <span class="str">&quot;reverse_list: 빈 리스트(None)도 에러 없이 처리되는가&quot;</span>,
+    reverse_list(build_list([])) <span class="kw">is</span> <span class="kw">None</span>
+))
+
+<span class="cm"># ============================================================</span>
+<span class="cm"># 2) has_cycle — 토끼와 거북이가 순환을 정확히 감지하는지 확인</span>
+<span class="cm"># ============================================================</span>
+a, b, c = Node(<span class="str">&#x27;A&#x27;</span>), Node(<span class="str">&#x27;B&#x27;</span>), Node(<span class="str">&#x27;C&#x27;</span>)
+a.next, b.next, c.next = b, c, <span class="kw">None</span>
+results.append(check(<span class="str">&quot;has_cycle: 순환이 없는 리스트 -&gt; False&quot;</span>, has_cycle(a) <span class="kw">is</span> <span class="kw">False</span>))
+
+a2, b2, c2 = Node(<span class="str">&#x27;A&#x27;</span>), Node(<span class="str">&#x27;B&#x27;</span>), Node(<span class="str">&#x27;C&#x27;</span>)
+a2.next, b2.next, c2.next = b2, c2, b2  <span class="cm"># C가 다시 B를 가리켜 순환이 생김</span>
+results.append(check(<span class="str">&quot;has_cycle: 순환이 있는 리스트 -&gt; True&quot;</span>, has_cycle(a2) <span class="kw">is</span> <span class="kw">True</span>))
+
+<span class="cm"># ============================================================</span>
+<span class="cm"># 3) DoublyLinkedList — append와 O(1) delete_node가 prev/next를</span>
+<span class="cm">#    양쪽 다 올바르게 재배선하는지 확인</span>
+<span class="cm"># ============================================================</span>
+dll = DoublyLinkedList()
+<span class="kw">for</span> v <span class="kw">in</span> [1, 2, 3]:
+    dll.append(v)
+results.append(check(<span class="str">&quot;DLL append: head가 1인가&quot;</span>, dll.head.data == 1))
+results.append(check(<span class="str">&quot;DLL append: tail이 3인가&quot;</span>, dll.tail.data == 3))
+results.append(check(<span class="str">&quot;DLL append: 가운데 노드(2)의 prev가 1인가&quot;</span>, dll.head.next.prev.data == 1))
+
+target = dll.head.next  <span class="cm"># 데이터가 2인 노드</span>
+dll.delete_node(target)
+results.append(check(<span class="str">&quot;DLL delete_node: 삭제 후 head.next가 3인가&quot;</span>, dll.head.next.data == 3))
+results.append(check(<span class="str">&quot;DLL delete_node: 삭제 후 tail의 prev가 1인가&quot;</span>, dll.tail.prev.data == 1))
+
+<span class="cm"># ============================================================</span>
+<span class="cm"># 4) CircularLinkedList — tail.next가 다시 head를 가리키는지,</span>
+<span class="cm">#    traverse가 한 바퀴만 돌고 멈추는지 확인</span>
+<span class="cm"># ============================================================</span>
+cll = CircularLinkedList()
+<span class="kw">for</span> v <span class="kw">in</span> [<span class="str">&#x27;A&#x27;</span>, <span class="str">&#x27;B&#x27;</span>, <span class="str">&#x27;C&#x27;</span>]:
+    cll.append(v)
+results.append(check(<span class="str">&quot;Circular append: tail.next가 head를 가리키는가&quot;</span>, cll.tail.next <span class="kw">is</span> cll.head))
+results.append(check(<span class="str">&quot;Circular traverse: [A,B,C] 순서로 순회되는가&quot;</span>, cll.traverse() == [<span class="str">&#x27;A&#x27;</span>, <span class="str">&#x27;B&#x27;</span>, <span class="str">&#x27;C&#x27;</span>]))
+
+<span class="cm"># ============================================================</span>
+<span class="cm"># 5) LRUCache — get으로 최근 사용 갱신, put으로 용량 초과 시</span>
+<span class="cm">#    가장 오래된 항목이 제거되는지 확인</span>
+<span class="cm"># ============================================================</span>
+cache = LRUCache(2)
+cache.put(1, <span class="str">&#x27;a&#x27;</span>)
+cache.put(2, <span class="str">&#x27;b&#x27;</span>)
+results.append(check(<span class="str">&quot;LRUCache: get(1) == &#x27;a&#x27;&quot;</span>, cache.get(1) == <span class="str">&#x27;a&#x27;</span>))
+cache.put(3, <span class="str">&#x27;c&#x27;</span>)  <span class="cm"># 용량 초과 -&gt; 가장 오래 안 쓴 key=2가 제거되어야 함</span>
+results.append(check(<span class="str">&quot;LRUCache: 용량 초과 시 LRU(key=2) 제거&quot;</span>, cache.get(2) == -1))
+results.append(check(<span class="str">&quot;LRUCache: key=3은 살아있는가&quot;</span>, cache.get(3) == <span class="str">&#x27;c&#x27;</span>))
+results.append(check(<span class="str">&quot;LRUCache: get(1)을 다시 호출했으므로 key=1도 살아있는가&quot;</span>, cache.get(1) == <span class="str">&#x27;a&#x27;</span>))
+
+<span class="cm"># ---- 결과 요약 ----</span>
+print(<span class="str">&quot;\n&quot;</span> + <span class="str">&quot;=&quot;</span> * 40)
+passed = sum(results)
+print(f<span class="str">&quot;결과: {passed} / {len(results)} 테스트 통과&quot;</span>)
+<span class="kw">if</span> passed == len(results):
+    print(<span class="str">&quot;모든 테스트를 통과했습니다!&quot;</span>)
+<span class="kw">else</span>:
+    print(<span class="str">&quot;실패한 항목의 코드를 다시 확인해보세요.&quot;</span>)</code></pre>
+    <div class="btn-row"><button class="primary copy-test-code">코드 복사하기</button><span class="copy-status steel" style="font-size:.82rem; margin-left:.6rem;"></span></div>
+  </div>
+
+  <p class="steel" style="font-size:.88rem;">참고: 테스트가 <code class="mono">FAIL</code>을 출력한다고 해서 코드 전체가 틀린 것은 아니다. 실패한 항목 하나하나가 "정확히 어떤 상황"에서 문제가 생기는지 알려주는 단서다. 예를 들어 <code class="mono">reverse_list</code>의 "노드 1개" 테스트만 실패했다면, 반복문에 들어가지 못하는 경계 조건(엣지 케이스)을 놓쳤을 가능성이 크다.</p>
+
 </section>
 
 <section id="quiz" class="rail">
@@ -1228,6 +1357,41 @@ survivor, order = josephus_circular(people, k=2)
   }
 
   loadOp(0);
+})();
+
+// ---------- 테스트 코드 복사 버튼 ----------
+(function(){
+  const btn = document.querySelector('.copy-test-code');
+  if(!btn) return;
+  const pre = btn.closest('.codewrap').querySelector('pre');
+  const statusEl = btn.closest('.codewrap').querySelector('.copy-status');
+  btn.addEventListener('click', () => {
+    const text = pre.innerText;
+    function done(ok){
+      statusEl.textContent = ok ? '복사됨!' : '복사에 실패했습니다. 직접 선택해 복사해주세요.';
+      setTimeout(() => { statusEl.textContent = ''; }, 2200);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(() => done(true)).catch(() => fallbackCopy());
+    } else {
+      fallbackCopy();
+    }
+    function fallbackCopy(){
+      try{
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        done(ok);
+      }catch(err){
+        done(false);
+      }
+    }
+  });
 })();
 </script>
 

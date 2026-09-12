@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F7F9FC">
+<meta name="color-scheme" content="light">
+<title>5주차 · 스택(Stack)과 큐(Queue)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14181F; --panel:#FFFFFF; --panel-2:#F5F7FB;
+    --chalk:#14181F; --steel:#4A5468; --amber:#C9962B; --red:#B5502E;
+    --green:#0F7A73; --line:#D8DEE9;
+    --radius:16px;
+    --shadow: 0 1px 2px rgba(20,24,31,0.04), 0 8px 24px -12px rgba(20,24,31,0.12);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; background:#F7F9FC; min-height:100%;}
+  body{
+    margin:0;
+    background-color:#F7F9FC;
+    background-image:
+      linear-gradient(rgba(47,75,124,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(47,75,124,0.045) 1px, transparent 1px);
+    background-size:42px 42px;
+    color:var(--chalk); font-family:'Inter', sans-serif; line-height:1.7; -webkit-font-smoothing:antialiased;
+    min-height:100vh; min-height:100dvh;
+  }
+  ::selection{background:var(--gold-soft, #FBF1DE); color:var(--ink);}
+  a{color:inherit;}
+  :focus-visible{outline:2px solid var(--amber); outline-offset:3px;}
+  .eyebrow{font-family:'JetBrains Mono', monospace; letter-spacing:.1em; text-transform:uppercase; font-size:.72rem; color:var(--amber); font-weight:600;}
+  .mono{font-family:'JetBrains Mono', monospace; font-feature-settings:'liga' 0, 'calt' 0; font-variant-ligatures:none;}
+  .tok-current{color:var(--amber); font-weight:700; text-decoration:underline; text-underline-offset:3px;}
+  .tok-done{color:var(--line);}
+  nav{position:sticky; top:0; z-index:50; display:flex; gap:2px; overflow-x:auto; background:rgba(247,249,252,0.9); backdrop-filter: blur(6px); border-bottom:1px solid var(--line); padding:0 1rem;}
+  nav a{flex:0 0 auto; padding:.85rem .9rem; font-size:.8rem; text-decoration:none; color:var(--steel); font-weight:500; white-space:nowrap; border-bottom:2px solid transparent;}
+  nav a:hover{color:var(--ink); border-bottom-color:var(--steel);}
+  .hero{padding:4.5rem 1.5rem 3rem; max-width:900px; margin:0 auto; border-bottom:1px solid var(--line);}
+  .board-tag{display:inline-flex; align-items:center; gap:.5rem; font-family:'JetBrains Mono',monospace; font-size:.78rem; color:var(--steel); background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:.3rem .8rem; margin-bottom:1.4rem; box-shadow:var(--shadow);}
+  .board-tag .dot{width:7px;height:7px;border-radius:50%;background:var(--amber); box-shadow:0 0 8px rgba(201,150,43,0.5);}
+  h1{font-family:'Fraunces', serif; font-size:clamp(2rem, 5vw, 3.1rem); line-height:1.25; margin:0 0 .7rem; font-weight:700; color:var(--ink);}
+  .hero p.lede{color:var(--steel); font-size:1.05rem; max-width:60ch; margin:0 0 2.2rem;}
+  .track{display:flex; align-items:center; flex-wrap:wrap; gap:0; padding:1.4rem 0;}
+  .car{font-family:'JetBrains Mono', monospace; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:.6rem .9rem; font-size:.82rem; color:var(--ink); position:relative; box-shadow:var(--shadow);}
+  .car.head::before{content:'head'; position:absolute; top:-1.15rem; left:0; font-size:.6rem; color:var(--amber); letter-spacing:.08em; font-family:'JetBrains Mono',monospace;}
+  .car.searching{border-color:var(--amber); color:#8A6B1F; background:#FBF1DE;}
+  .car.popping{border-color:var(--red); color:#8A3B21; background:#F8E9E2;}
+  .car.tag::before{content:attr(data-tag); position:absolute; top:-1.15rem; left:0; font-size:.6rem; color:var(--amber); letter-spacing:.08em; font-family:'JetBrains Mono',monospace;}
+  .arrow{color:var(--amber); font-size:1.1rem; margin:0 .4rem; font-weight:700;}
+  .none-signal{font-family:'JetBrains Mono',monospace; color:var(--red); border:1px dashed var(--red); border-radius:6px; padding:.6rem .8rem; font-size:.78rem; margin-left:.2rem; background:#F8E9E2;}
+  .stack-col{display:flex; flex-direction:column-reverse; gap:.4rem; align-items:flex-start;}
+  .grid-cells{display:grid; gap:4px;}
+  .cell{width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:var(--panel); border:1px solid var(--line); border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:.75rem; color:var(--ink);}
+  .cell.on{background:#FBF1DE; border-color:var(--amber); color:#8A6B1F; font-weight:600;}
+  .cell.wall{background:var(--ink); color:#EEF1F6; border-color:var(--ink);}
+  .bars{display:flex; align-items:flex-end; gap:6px; height:110px;}
+  .bar{width:22px; background:var(--panel-2); border:1px solid var(--line); border-radius:3px 3px 0 0; display:flex; align-items:flex-start; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:.65rem; color:var(--steel); padding-top:2px;}
+  .bar.hi{background:#FBF1DE; border-color:var(--amber); color:#8A6B1F;}
+  section{max-width:900px; margin:0 auto; padding:3.4rem 1.5rem; border-bottom:1px solid var(--line); position:relative;}
+  section.rail::before{content:''; position:absolute; left:-1px; top:3.6rem; bottom:3.6rem; width:2px; background:repeating-linear-gradient(to bottom, var(--steel) 0 6px, transparent 6px 12px); opacity:.3; display:none;}
+  @media(min-width:960px){section.rail::before{display:block; left:calc(50% - 450px - 22px);}}
+  h2{font-family:'Fraunces', serif; font-size:1.6rem; margin:0 0 1.4rem; display:flex; align-items:baseline; gap:.6rem; color:var(--ink); font-weight:600;}
+  h2 .num{color:var(--amber); font-family:'JetBrains Mono',monospace; font-size:1.1rem;}
+  h3{font-family:'Fraunces', serif; font-size:1.1rem; margin:2rem 0 .8rem; color:var(--ink); font-weight:600;}
+  p{color:#2C3444;}
+  .steel{color:var(--steel);}
+  .card-row{display:grid; gap:1rem; grid-template-columns:1fr 1fr; margin-top:1rem;}
+  @media(max-width:640px){.card-row{grid-template-columns:1fr;}}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.3rem 1.4rem; box-shadow:var(--shadow);}
+  .card .eyebrow{display:block; margin-bottom:.5rem;}
+  .card p{margin:0; color:var(--ink); font-size:.98rem;}
+  .card.q{border-left:3px solid var(--amber);}
+  .card.i{border-left:3px solid var(--green);}
+  .card.algo{border-left:3px solid var(--steel);}
+  .card.algo .eyebrow{color:var(--steel);}
+  .goal-list{list-style:none; padding:0; margin:1.2rem 0 0; display:grid; gap:.7rem;}
+  .goal-list li{display:flex; gap:.7rem; align-items:flex-start; background:var(--panel-2); border-radius:8px; padding:.75rem 1rem; font-size:.94rem; color:var(--ink);}
+  .goal-list li .mark{color:var(--amber); font-family:'JetBrains Mono',monospace; flex:0 0 auto;}
+  .builder{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.6rem; margin-top:1.5rem; box-shadow:var(--shadow);}
+  .builder-track{min-height:70px; display:flex; align-items:center; flex-wrap:wrap; padding:1.2rem 0; gap:0;}
+  .stepper{min-height:120px; padding:1rem 0;}
+  .step{display:none;}
+  .step.active{display:block; animation:fade .3s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+  @keyframes pop{from{transform:scale(.7); opacity:0;} to{transform:scale(1); opacity:1;}}
+  @media (prefers-reduced-motion: reduce){ .step.active, .builder-track .car{animation:none;} }
+  .step-dots{display:flex; gap:.4rem; margin-top:1rem;}
+  .step-dots button{width:9px; height:9px; padding:0; border-radius:50%; border:1px solid var(--line); background:var(--panel-2);}
+  .step-dots button.active{background:var(--amber); border-color:var(--amber);}
+  .btn-row{display:flex; flex-wrap:wrap; gap:.6rem; margin-top:1rem; align-items:center;}
+  button{font-family:'Inter', sans-serif; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:.6rem 1rem; font-size:.86rem; font-weight:600; cursor:pointer; transition:.15s;}
+  button:hover{border-color:var(--amber); color:#8A6B1F;}
+  button.primary{background:var(--amber); color:#2A1F06; border-color:var(--amber); font-weight:700;}
+  button.primary:hover{background:#DDAD44; color:#2A1F06;}
+  button.danger:hover{border-color:var(--red); color:var(--red);}
+  .builder-note{margin-top:1rem; font-size:.86rem; color:var(--steel); border-top:1px dashed var(--line); padding-top:.9rem; min-height:2.4em;}
+  .builder-note b{color:#8A6B1F;}
+  pre{background:#1B2130; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem; overflow-x:auto; font-size:.86rem; font-family:'JetBrains Mono', monospace; line-height:1.65; color:#E7ECF5; font-feature-settings:'liga' 0, 'calt' 0; font-variant-ligatures:none;}
+  code{font-family:'JetBrains Mono', monospace; font-feature-settings:'liga' 0, 'calt' 0; font-variant-ligatures:none;}
+  .kw{color:#7FB0E0;} .fn{color:#E0C26B;} .cm{color:#8593A8; font-style:italic;} .str{color:#8FCA8F;}
+  .blank{background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.28); color:#E0C26B; font-family:'JetBrains Mono', monospace; font-size:.86rem; padding:.15rem .5rem; border-radius:4px; width:8em;}
+  .fill-wrap{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.4rem; box-shadow:var(--shadow);}
+  .fill-actions{display:flex; gap:.6rem; margin-top:1rem; flex-wrap:wrap;}
+  .reveal{display:none; margin-top:1rem; padding:1rem; border-radius:8px; background:#FBF1DE; border:1px solid #EBD9AD; font-size:.88rem; color:#5C4610;}
+  .reveal.show{display:block;}
+  .quiz-item{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.3rem 1.4rem; margin-bottom:1rem; box-shadow:var(--shadow);}
+  .quiz-item p.q-text{color:var(--ink); font-weight:600; margin-top:0;}
+  .quiz-opts{list-style:none; padding:0; margin:.8rem 0 0; display:grid; gap:.5rem;}
+  .quiz-opts li button{width:100%; text-align:left; border-radius:8px; font-weight:500;}
+  .quiz-opts li button.correct{border-color:var(--green); color:#0B5951; background:#E2F3F1; font-weight:600;}
+  .quiz-opts li button.wrong{border-color:var(--red); color:#8A3B21; background:#F8E9E2;}
+  .q-feedback{margin-top:.7rem; font-size:.85rem; color:var(--steel); min-height:1.2em;}
+  /* 스택/큐 판단 활동 */
+  .judge-head{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.8rem; margin-bottom:1rem;}
+  .judge-item{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.1rem 1.3rem; margin-bottom:.8rem; box-shadow:var(--shadow);}
+  .judge-item .scenario{color:var(--ink); margin:0 0 .8rem; font-size:.95rem;}
+  .judge-item .scenario .qn{font-family:'JetBrains Mono',monospace; color:var(--amber); font-weight:700; margin-right:.5rem;}
+  .judge-btns{display:flex; gap:.6rem; flex-wrap:wrap;}
+  .judge-btns button{flex:1 1 auto; min-width:140px; border:1px solid var(--line); background:var(--panel-2); border-radius:8px; padding:.7rem 1rem; font-weight:600; font-family:inherit; font-size:.9rem; cursor:pointer; color:var(--ink); transition:all .15s;}
+  .judge-btns button:hover:not(:disabled){border-color:var(--steel);}
+  .judge-btns button .sub{display:block; font-size:.7rem; font-weight:500; color:var(--steel); margin-top:.15rem; font-family:'JetBrains Mono',monospace;}
+  .judge-btns button.picked-right{border-color:var(--green); background:#E2F3F1; color:#0B5951;}
+  .judge-btns button.picked-wrong{border-color:var(--red); background:#F8E9E2; color:#8A3B21;}
+  .judge-btns button.reveal-right{border-color:var(--green); box-shadow:0 0 0 2px rgba(15,122,115,0.15) inset;}
+  .judge-btns button:disabled{cursor:default; opacity:1;}
+  .judge-why{margin-top:.8rem; font-size:.85rem; color:var(--steel); line-height:1.55; padding:.7rem .9rem; border-left:3px solid var(--green); background:var(--panel-2); border-radius:6px; display:none;}
+  .judge-why.show{display:block;}
+  .judge-why b{color:var(--ink);}
+  /* 심화: 환형 큐 다이어그램 */
+  .ring{position:relative; width:230px; height:230px; margin:1.4rem auto;}
+  .ring-cell{position:absolute; width:52px; height:52px; margin:-26px 0 0 -26px; border:1px solid var(--line); border-radius:8px; background:var(--panel); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:.82rem; color:var(--ink); box-shadow:var(--shadow);}
+  .ring-cell .slot{position:absolute; top:-1rem; font-size:.6rem; color:var(--steel); font-family:'JetBrains Mono',monospace;}
+  .ring-cell.filled{background:#E2F3F1; border-color:var(--green); color:#0B5951; font-weight:600;}
+  .ring-cell.is-front{box-shadow:0 0 0 2px var(--amber);}
+  .ring-cell.is-rear{box-shadow:0 0 0 2px var(--red);}
+  .ring-cell.is-front.is-rear{box-shadow:0 0 0 2px var(--amber), 0 0 0 4px var(--red);}
+  .ring-badge{position:absolute; font-size:.62rem; font-family:'JetBrains Mono',monospace; font-weight:700; padding:.05rem .3rem; border-radius:4px;}
+  .ring-badge.f{color:var(--amber); background:#FBF1DE;}
+  .ring-badge.r{color:var(--red); background:#F8E9E2;}
+  .ring-legend{display:flex; gap:1.2rem; justify-content:center; flex-wrap:wrap; font-size:.78rem; color:var(--steel); margin-top:.4rem;}
+  .ring-legend span{display:inline-flex; align-items:center; gap:.35rem;}
+  .ring-legend .chip{width:12px; height:12px; border-radius:3px; border:2px solid;}
+  /* 생산자-버퍼-소비자 흐름 */
+  .flow{display:flex; align-items:center; justify-content:center; gap:.6rem; flex-wrap:wrap; margin:1.1rem 0 .3rem;}
+  .flow-node{border:1px solid var(--line); border-radius:8px; padding:.6rem .9rem; background:var(--panel); text-align:center; font-size:.82rem; box-shadow:var(--shadow); min-width:96px;}
+  .flow-node .role{display:block; font-family:'JetBrains Mono',monospace; font-size:.62rem; color:var(--steel); letter-spacing:.05em; margin-bottom:.2rem;}
+  .flow-node.producer{border-color:var(--red);}
+  .flow-node.consumer{border-color:var(--green);}
+  .flow-buf{display:flex; gap:3px; border:1px solid var(--amber); border-radius:8px; padding:.5rem .6rem; background:#FBF1DE;}
+  .flow-buf .slot{width:16px; height:26px; border-radius:3px; border:1px solid rgba(201,150,43,0.5); background:var(--panel);}
+  .flow-buf .slot.full{background:var(--amber);}
+  .flow-arrow{color:var(--steel); font-size:1.2rem; font-weight:700;}
+  .flow-cap{text-align:center; font-size:.72rem; color:var(--steel); font-family:'JetBrains Mono',monospace; margin-top:.1rem;}
+  /* 읽기 자료 (접이식) */
+  .reading{border:1px solid var(--line); border-left:3px solid var(--green); border-radius:var(--radius); background:var(--panel); box-shadow:var(--shadow); margin:1.4rem 0; overflow:hidden;}
+  .reading>summary{cursor:pointer; list-style:none; padding:1rem 1.3rem; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:.6rem;}
+  .reading>summary::-webkit-details-marker{display:none;}
+  .reading>summary .rtag{font-family:'JetBrains Mono',monospace; font-size:.62rem; letter-spacing:.08em; text-transform:uppercase; color:var(--green); border:1px solid var(--green); border-radius:999px; padding:.15rem .55rem; flex:0 0 auto;}
+  .reading>summary .chev{margin-left:auto; color:var(--steel); transition:transform .2s; flex:0 0 auto;}
+  .reading[open]>summary .chev{transform:rotate(90deg);}
+  .reading .reading-body{padding:0 1.3rem 1.3rem; border-top:1px solid var(--line);}
+  .reading .reading-body p{margin:.9rem 0 0;}
+  .reading .reading-body h5{font-family:'Fraunces',serif; font-size:1rem; margin:1.3rem 0 0; color:var(--ink);}
+  .reading .analogy{background:var(--panel-2); border-radius:8px; padding:.8rem 1rem; margin:.9rem 0 0; font-size:.9rem;}
+  .score-pill{display:inline-block; font-family:'JetBrains Mono',monospace; font-size:.85rem; border:1px solid var(--line); background:var(--panel); border-radius:999px; padding:.4rem 1rem; color:var(--steel);}
+  .check-list{list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.7rem;}
+  .check-list li{display:flex; gap:.8rem; align-items:flex-start; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:.9rem 1rem; cursor:pointer; box-shadow:var(--shadow);}
+  .check-list input{margin-top:.25rem; accent-color:var(--green); width:16px; height:16px; flex:0 0 auto;}
+  .check-list li.checked{border-color:rgba(15,122,115,0.4); background:#E2F3F1;}
+  .check-list li.checked span{color:var(--steel); text-decoration:line-through;}
+  .check-list span{font-size:.92rem; color:var(--ink);}
+  #progressBar{height:4px; background:var(--panel-2); border-radius:999px; overflow:hidden; margin-top:1.4rem;}
+  #progressFill{height:100%; width:0%; background:linear-gradient(90deg, var(--green), var(--amber)); transition:width .3s;}
+  footer{max-width:900px; margin:0 auto; padding:3rem 1.5rem 5rem; color:var(--steel); font-size:.88rem;}
+  footer .next{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.3rem 1.4rem; margin-top:1rem; box-shadow:var(--shadow);}
+  footer .next .eyebrow{margin-bottom:.4rem;}
+  table.cmp{width:100%; border-collapse:collapse; margin-top:1rem; font-size:.9rem;}
+  table.cmp th, table.cmp td{border:1px solid var(--line); padding:.6rem .8rem; text-align:left;}
+  table.cmp th{background:var(--panel-2); color:var(--steel); font-family:'JetBrains Mono',monospace; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em;}
+  table.cmp td{background:var(--panel);}
+</style>
+</head>
+<body>
+<div aria-hidden="true" style="position:fixed; inset:0; background:#F7F9FC; z-index:-1;"></div>
+
+<nav aria-label="섹션 이동">
+  <a href="#idea">핵심 아이디어</a>
+  <a href="#theory">이론</a>
+  <a href="#linkedlist-impl">연결 리스트 구현</a>
+  <a href="#algorithms">대표 알고리즘</a>
+  <a href="#advanced">심화 주제</a>
+  <a href="#activity">체험 활동</a>
+  <a href="#practice">실습</a>
+  <a href="#quiz">확인 퀴즈</a>
+  <a href="#selfcheck">자가진단</a>
+</nav>
+
+<header class="hero">
+  <div class="board-tag"><span class="dot"></span>WEEK 05 · ORDER CONTROL</div>
+  <h1>스택(Stack)과 큐(Queue)</h1>
+  <p class="lede">접시 더미와 매표소 대기열. 데이터를 넣고 빼는 "순서"만 바꿔도 히스토리 추적, 괄호 검사 같은 문제가 순식간에 풀린다.</p>
+  <div style="display:flex; gap:2.5rem; flex-wrap:wrap;">
+    <div><p class="eyebrow" style="display:block; margin-bottom:.6rem;">STACK · LIFO</p>
+      <div class="stack-col"><div class="car">③ 접시</div><div class="car">② 접시</div><div class="car">① 접시</div></div></div>
+    <div><p class="eyebrow" style="display:block; margin-bottom:.6rem;">QUEUE · FIFO</p>
+      <div class="track"><div class="car">① 손님</div><span class="arrow">→</span><div class="car">② 손님</div><span class="arrow">→</span><div class="car">③ 손님</div></div></div>
+  </div>
+</header>
+
+<section id="idea" class="rail">
+  <h2><span class="num">01</span> 핵심 아이디어 &amp; 핵심 질문</h2>
+  <div class="card-row">
+    <div class="card i">
+      <span class="eyebrow">핵심 아이디어</span>
+      <p>데이터의 삽입과 삭제 "순서"를 제어하면 특정 패턴의 문제(히스토리, 대기열)를 우아하게 해결할 수 있다.</p>
+    </div>
+    <div class="card q">
+      <span class="eyebrow">핵심 질문</span>
+      <p>가장 나중에 들어온 데이터와 가장 먼저 들어온 데이터를 어떻게 가장 효율적으로 처리할까?</p>
+    </div>
+  </div>
+  <div class="card algo" style="margin-top:1rem; border-left-color:var(--green);">
+    <span class="eyebrow" style="color:var(--green);">이번 주 학습 목표</span>
+    <p style="margin:.4rem 0 0;">이번 시간이 끝나면 다음을 할 수 있어야 한다.</p>
+    <ul class="goal-list">
+      <li><span class="mark" style="color:var(--green);">01</span>스택(LIFO)과 큐(FIFO)의 동작 원리를 접시 더미·대기열 같은 실생활 예로 설명할 수 있다.</li>
+      <li><span class="mark" style="color:var(--green);">02</span>연결 리스트를 이용해 스택의 push·pop과 큐의 enqueue·dequeue를 모두 O(1)로 직접 구현할 수 있다.</li>
+      <li><span class="mark" style="color:var(--green);">03</span>큐를 연결 리스트로 만들 때 head뿐 아니라 tail 포인터가 왜 필요한지 설명할 수 있다.</li>
+      <li><span class="mark" style="color:var(--green);">04</span>스택과 큐로 해결되는 대표 문제(후위 표기법 계산, 괄호 검사, 라운드 로빈 스케줄링)를 코드로 구현할 수 있다.</li>
+      <li><span class="mark" style="color:var(--green);">05</span>주어진 문제에 스택과 큐 중 어떤 구조가 적합한지 스스로 판단할 수 있다.</li>
+    </ul>
+  </div>
+  <h3>4주차와의 연결</h3><p>스택과 큐는 사실 연결 리스트(혹은 배열)에 "이 끝에서만 넣고 뺀다"는 규칙을 하나 얹은 것이다. 4주차의 head 삽입이 바로 스택의 push 연산과 같은 O(1) 연산이다.</p>
+</section>
+
+<section id="theory" class="rail">
+  <h2><span class="num">02</span> 이론</h2>
+  <h3>LIFO: 접시 더미</h3>
+  <p>싱크대에 쌓인 접시는 맨 위에 놓은 것을 맨 먼저 꺼내 쓴다(Last In, First Out). 함수 호출 스택, 되돌리기(Undo), 괄호 짝 맞추기가 전형적인 스택 문제다. 파이썬에서는 list의 append/pop을 그대로 스택으로 쓸 수 있다 — 둘 다 O(1)이기 때문이다.</p>
+  <h3>FIFO: 매표소 대기열</h3>
+  <p>줄을 선 순서대로 표를 받는다(First In, First Out). 그런데 list.pop(0)은 앞의 모든 요소를 당겨야 해서 O(N)이다 — 리스트를 큐로 쓰면 앞에서 뺄 때마다 성능이 저하된다. 이 문제를 해결하는 것이 <code class="mono">collections.deque</code>다. 양쪽 끝 모두 O(1)로 삽입/삭제가 가능한 이중 연결 리스트 기반 구조다.</p>
+</section>
+
+<section id="linkedlist-impl" class="rail">
+  <h2><span class="num">03</span> 연결 리스트로 구현하기</h2>
+  <p>지금까지는 파이썬이 이미 완성해 둔 list와 <code class="mono">deque</code>로 스택·큐를 썼다. 이번에는 3·4주차에서 만든 Node를 직접 이어 붙여, 그 도구들이 내부에서 어떤 원리로 O(1)을 만들어내는지 밑바닥부터 확인해본다. 1절에서 언급했듯 "4주차의 head 삽입이 곧 스택의 push"라는 말을 코드로 직접 증명하는 셈이다.</p>
+
+  <h3>스택 — 단일 연결 리스트 + head 포인터 하나</h3>
+  <p>스택은 항상 한쪽 끝에서만 넣고 뺀다. 그 끝을 연결 리스트의 head로 삼으면 push와 pop 모두 head 딱 하나만 조작하면 끝난다 — 중간 노드를 순회할 일이 전혀 없다.</p>
+
+  <div class="card algo">
+    <span class="eyebrow">알고리즘 — push(data)</span>
+    <ul class="goal-list">
+      <li><span class="mark">1</span>새 Node를 만들어 data를 담는다.</li>
+      <li><span class="mark">2</span>새 Node의 next가 현재 head를 가리키게 연결한다.</li>
+      <li><span class="mark">3</span>head를 새 Node로 교체한다.</li>
+    </ul>
+  </div>
+  <div class="card algo">
+    <span class="eyebrow">알고리즘 — pop()</span>
+    <ul class="goal-list">
+      <li><span class="mark">1</span>head가 None이면 스택이 비었다는 뜻이므로 예외를 발생시킨다.</li>
+      <li><span class="mark">2</span>head가 가리키는 Node의 data를 꺼내 임시로 저장한다.</li>
+      <li><span class="mark">3</span>head를 head.next로 옮겨 기존 head를 리스트에서 분리한다.</li>
+      <li><span class="mark">4</span>저장해둔 data를 반환한다.</li>
+    </ul>
+  </div>
+
+<pre><code><span class="kw">class</span> <span class="fn">Node</span>:
+    __slots__ = (<span class="str">'data'</span>, <span class="str">'next'</span>)  <span class="cm"># 3주차에서 배운 메모리 최적화 기법을 그대로 사용</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, data):
+        self.data = data
+        self.next = <span class="kw">None</span>
+
+
+<span class="kw">class</span> <span class="fn">LinkedStack</span>:
+    <span class="str">"""단일 연결 리스트로 구현한 스택(LIFO). head 포인터 하나만 쓴다."""</span>
+    __slots__ = (<span class="str">'head'</span>, <span class="str">'_size'</span>)
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.head = <span class="kw">None</span>        <span class="cm"># 스택의 top을 가리키는 포인터</span>
+        self._size = 0
+
+    <span class="kw">def</span> <span class="fn">push</span>(self, data):
+        <span class="cm"># 알고리즘: 새 노드를 만들고 head 앞에 끼워 넣는다 — O(1)</span>
+        new_node = Node(data)
+        new_node.next = self.head      <span class="cm"># 새 노드가 기존 head를 가리키게 연결</span>
+        self.head = new_node           <span class="cm"># head를 새 노드로 교체</span>
+        self._size += 1
+
+    <span class="kw">def</span> <span class="fn">pop</span>(self):
+        <span class="cm"># 알고리즘: head가 가리키는 노드를 떼어내고 반환한다 — O(1)</span>
+        <span class="kw">if</span> self.head <span class="kw">is</span> <span class="kw">None</span>:
+            <span class="kw">raise</span> IndexError(<span class="str">'pop from empty stack'</span>)
+        popped = self.head
+        self.head = self.head.next     <span class="cm"># head를 한 칸 옮겨 기존 head를 분리</span>
+        popped.next = <span class="kw">None</span>         <span class="cm"># 끊어낸 노드가 리스트를 계속 참조하지 않도록 정리</span>
+        self._size -= 1
+        <span class="kw">return</span> popped.data
+
+    <span class="kw">def</span> <span class="fn">peek</span>(self):
+        <span class="kw">if</span> self.head <span class="kw">is</span> <span class="kw">None</span>:
+            <span class="kw">raise</span> IndexError(<span class="str">'peek from empty stack'</span>)
+        <span class="kw">return</span> self.head.data        <span class="cm"># 꺼내지 않고 top 값만 확인 — O(1)</span>
+
+    <span class="kw">def</span> <span class="fn">is_empty</span>(self):
+        <span class="kw">return</span> self.head <span class="kw">is</span> <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">__len__</span>(self):
+        <span class="kw">return</span> self._size</code></pre>
+
+  <p>list 기반 스택도 append/pop이 O(1)인데 왜 굳이 연결 리스트로 다시 만들까? 사실 list의 O(1)은 <b>상각(amortized)</b> O(1)이다 — 내부 배열이 꽉 차면 가끔 한 번씩 더 큰 배열로 재할당하는 비용이 숨어 있다(이 '상각'이 무엇인지는 05절 심화의 읽기 자료에서 자세히 다룬다). LinkedStack은 매번 새 Node 하나만 만들므로 최악의 경우에도 진짜 O(1)을 보장한다.</p>
+
+  <h3>큐 — 단일 연결 리스트 + head·tail 포인터 두 개</h3>
+  <p>큐는 넣는 곳(rear)과 빼는 곳(front)이 다르다. head 하나만 쓰면 rear 쪽 삽입마다 리스트 끝까지 순회해야 해서 O(N)이 되어버린다 — 이론에서 본 list.pop(0)의 함정과 정확히 같다. tail 포인터를 하나 더 유지해야 양쪽 모두 O(1)을 보장할 수 있다.</p>
+
+  <div class="card algo">
+    <span class="eyebrow">알고리즘 — enqueue(data)</span>
+    <ul class="goal-list">
+      <li><span class="mark">1</span>새 Node를 만들어 data를 담는다.</li>
+      <li><span class="mark">2</span>큐가 비어 있다면(tail이 None) head와 tail을 모두 새 Node로 설정한다.</li>
+      <li><span class="mark">3</span>비어 있지 않다면 기존 tail의 next를 새 Node로 연결하고, tail을 새 Node로 옮긴다.</li>
+    </ul>
+  </div>
+  <div class="card algo">
+    <span class="eyebrow">알고리즘 — dequeue()</span>
+    <ul class="goal-list">
+      <li><span class="mark">1</span>head가 None이면 큐가 비었다는 뜻이므로 예외를 발생시킨다.</li>
+      <li><span class="mark">2</span>head가 가리키는 Node의 data를 꺼내 임시로 저장한다.</li>
+      <li><span class="mark">3</span>head를 head.next로 옮긴다.</li>
+      <li><span class="mark">4</span>그 결과 head가 None이 되었다면(마지막 노드를 꺼낸 경우) tail도 함께 None으로 비운다.</li>
+      <li><span class="mark">5</span>저장해둔 data를 반환한다.</li>
+    </ul>
+  </div>
+
+<pre><code><span class="kw">class</span> <span class="fn">LinkedQueue</span>:
+    <span class="str">"""단일 연결 리스트 + head·tail 포인터로 구현한 큐(FIFO)."""</span>
+    __slots__ = (<span class="str">'head'</span>, <span class="str">'tail'</span>, <span class="str">'_size'</span>)
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.head = <span class="kw">None</span>    <span class="cm"># front: dequeue가 일어나는 쪽</span>
+        self.tail = <span class="kw">None</span>    <span class="cm"># rear : enqueue가 일어나는 쪽</span>
+        self._size = 0
+
+    <span class="kw">def</span> <span class="fn">enqueue</span>(self, data):
+        <span class="cm"># 알고리즘: tail 뒤에 새 노드를 붙이고 tail을 갱신한다 — O(1)</span>
+        new_node = Node(data)
+        <span class="kw">if</span> self.tail <span class="kw">is</span> <span class="kw">None</span>:            <span class="cm"># 빈 큐였다면 head·tail이 같은 노드를 가리켜야 함</span>
+            self.head = self.tail = new_node
+        <span class="kw">else</span>:
+            self.tail.next = new_node    <span class="cm"># 기존 tail의 next를 새 노드로 연결</span>
+            self.tail = new_node         <span class="cm"># tail을 새 노드로 이동</span>
+        self._size += 1
+
+    <span class="kw">def</span> <span class="fn">dequeue</span>(self):
+        <span class="cm"># 알고리즘: head를 떼어내고 head를 한 칸 전진시킨다 — O(1)</span>
+        <span class="kw">if</span> self.head <span class="kw">is</span> <span class="kw">None</span>:
+            <span class="kw">raise</span> IndexError(<span class="str">'dequeue from empty queue'</span>)
+        removed = self.head
+        self.head = self.head.next
+        <span class="kw">if</span> self.head <span class="kw">is</span> <span class="kw">None</span>:             <span class="cm"># 마지막 노드를 꺼낸 경우 — tail도 함께 비워야 한다!</span>
+            self.tail = <span class="kw">None</span>             <span class="cm"># (빠뜨리면 tail이 유령 노드를 계속 가리키는 버그가 생긴다)</span>
+        removed.next = <span class="kw">None</span>
+        self._size -= 1
+        <span class="kw">return</span> removed.data
+
+    <span class="kw">def</span> <span class="fn">is_empty</span>(self):
+        <span class="kw">return</span> self.head <span class="kw">is</span> <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">__len__</span>(self):
+        <span class="kw">return</span> self._size</code></pre>
+</section>
+
+<section id="algorithms" class="rail">
+  <h2><span class="num">04</span> 대표 알고리즘 예제</h2>
+  <p>스택과 큐가 실제로 어떤 문제를 "우아하게" 푸는지 세 가지 예제로 확인한다. 모두 먼저 알고리즘을 말로 정리한 뒤, 그 순서를 그대로 코드로 옮긴다 — 이때 list나 deque가 아니라 03절에서 직접 만든 <code class="mono">LinkedStack</code>·<code class="mono">LinkedQueue</code>를 사용해, "우리가 만든 자료구조"가 실전 문제를 그대로 풀어낸다는 것을 확인한다.</p>
+
+  <h3>스택 예제 ① — 후위 표기법(Postfix) 계산기</h3>
+  <p>"(3 + 4) * 2" 같은 일반적인 수식(중위 표기법)은 괄호와 연산자 우선순위를 따져야 계산 순서를 알 수 있다. 반면 후위 표기법 "3 4 + 2 *"는 <b>토큰을 왼쪽부터 딱 한 번씩만 읽으면서</b> 계산할 수 있다 — 연산자를 만나면 "가장 최근에 나온 두 값"을 꺼내 계산하면 되기 때문이다. "가장 최근 것부터" 처리한다는 점에서 스택이 정확히 들어맞는다.</p>
+  <div class="card algo">
+    <span class="eyebrow">알고리즘 — 후위 표기법 계산</span>
+    <ul class="goal-list">
+      <li><span class="mark">1</span>수식을 공백 기준으로 토큰(숫자/연산자)으로 나눈다.</li>
+      <li><span class="mark">2</span>토큰을 순서대로 하나씩 확인한다.</li>
+      <li><span class="mark">3</span>숫자면 스택에 push한다.</li>
+      <li><span class="mark">4</span>연산자면 스택에서 두 번 pop한다 — 나중에 나온 값이 오른쪽 피연산자다.</li>
+      <li><span class="mark">5</span>두 값으로 연산을 수행하고, 결과를 다시 스택에 push한다.</li>
+      <li><span class="mark">6</span>모든 토큰을 처리하고 나면 스택에 남은 값 하나가 최종 결과다.</li>
+    </ul>
+  </div>
+<pre><code><span class="cm"># 03절에서 만든 LinkedStack을 그대로 사용한다</span>
+<span class="kw">def</span> <span class="fn">eval_postfix</span>(expression):
+    stack = LinkedStack()
+    ops = {
+        <span class="str">'+'</span>: <span class="kw">lambda</span> a, b: a + b,
+        <span class="str">'-'</span>: <span class="kw">lambda</span> a, b: a - b,
+        <span class="str">'*'</span>: <span class="kw">lambda</span> a, b: a * b,
+        <span class="str">'/'</span>: <span class="kw">lambda</span> a, b: a / b,
+    }
+    <span class="kw">for</span> token <span class="kw">in</span> expression.split():         <span class="cm"># 공백으로 토큰 분리</span>
+        <span class="kw">if</span> token <span class="kw">in</span> ops:
+            b = stack.pop()                     <span class="cm"># 나중에 push된 피연산자 (오른쪽 항)</span>
+            a = stack.pop()                     <span class="cm"># 먼저 push된 피연산자 (왼쪽 항)</span>
+            stack.push(ops[token](a, b))        <span class="cm"># 연산 결과를 다시 push</span>
+        <span class="kw">else</span>:
+            stack.push(float(token))            <span class="cm"># 숫자 토큰은 그대로 push</span>
+    <span class="kw">return</span> stack.pop()                           <span class="cm"># 마지막 남은 값이 최종 결과</span>
+
+
+<span class="cm"># "3 4 + 2 *" -> (3 + 4) * 2 = 14.0</span>
+print(eval_postfix(<span class="str">"3 4 + 2 *"</span>))</code></pre>
+
+  <h3>스택 예제 ② — 일일 온도 (모노토닉 스택)</h3>
+
+  <div class="card algo" style="border-left-color:var(--steel);">
+    <span class="eyebrow" style="color:var(--steel);">새 용어 · 모노토닉 스택 (Monotonic Stack)</span>
+    <p style="margin:.5rem 0 0;"><b>모노토닉(monotonic)</b>은 수학에서 "단조로운", 즉 <b>한 방향으로만 증가하거나 한 방향으로만 감소하는</b> 성질을 뜻한다. <b>모노토닉 스택</b>은 이 성질을 항상 지키도록 관리하는 스택이다 — 즉 <b>스택 안의 값이 바닥에서 top까지 항상 정렬된 상태(계속 증가 또는 계속 감소)를 유지</b>한다.</p>
+    <p style="margin:.7rem 0 0;">비결은 push하기 전에 <b>정렬을 깨뜨리는 기존 값들을 먼저 pop해서 걷어내는</b> 것이다. 예를 들어 "감소하는 모노토닉 스택"이라면, 새로 들어올 값보다 작은 top들을 전부 꺼낸 뒤에 push한다. 그러면 스택은 언제나 위로 갈수록 작아지는 상태를 유지한다.</p>
+    <p style="margin:.7rem 0 0;">왜 유용할까? "각 원소의 <b>오른쪽(또는 왼쪽)에서 자기보다 크거나 작은 첫 번째 원소</b>를 찾아라" 같은 문제에서, 이 정렬 상태 덕분에 <b>모든 원소를 다시 비교하지 않아도</b> 답을 찾을 수 있다. 겉보기엔 이중 반복문(O(N²))이 필요해 보여도, 각 원소가 스택에 딱 한 번 들어가고 한 번 나오므로 전체가 <b>O(N)</b>으로 끝난다. 아래 일일 온도 문제가 바로 그 대표 예다.</p>
+  </div>
+
+  <p>매일의 기온이 담긴 리스트에서 "각 날짜마다 더 따뜻한 날이 오기까지 며칠을 기다려야 하는가"를 구하는 문제다(더 따뜻한 날이 없으면 0). 각 날짜마다 이후 날짜를 전부 훑으면 O(N²)이 걸린다. 여기서는 <b>온도가 감소하는 모노토닉 스택</b>에 "아직 더 따뜻한 날을 못 만난 날짜"의 인덱스만 쌓아둔다. 오늘이 스택 top보다 따뜻하면, 그 top 날짜는 기다림이 끝난 것이므로 pop하며 답을 기록한다. 각 날짜는 스택에 딱 한 번 들어가고 한 번만 나오므로, while문이 반복되더라도 전체는 O(N)으로 끝난다.</p>
+  <div class="card algo">
+    <span class="eyebrow">알고리즘 — 일일 온도</span>
+    <ul class="goal-list">
+      <li><span class="mark">1</span>정답을 담을 배열을 0으로 채워 준비한다.</li>
+      <li><span class="mark">2</span>"답을 못 찾은 날짜의 인덱스"를 담을 빈 스택을 준비한다.</li>
+      <li><span class="mark">3</span>날짜를 순서대로 확인한다.</li>
+      <li><span class="mark">4</span>스택이 비어있지 않고 스택 top 날짜의 온도가 오늘 온도보다 낮은 동안, top을 pop하며 (오늘 인덱스 − pop한 인덱스)를 그 날짜의 정답으로 기록한다.</li>
+      <li><span class="mark">5</span>오늘 날짜의 인덱스를 스택에 push한다.</li>
+      <li><span class="mark">6</span>모든 날짜 처리 후 스택에 남은 인덱스는 더 따뜻한 날이 없었던 것이므로 0으로 둔다.</li>
+    </ul>
+  </div>
+<pre><code><span class="cm"># 03절에서 만든 LinkedStack을 그대로 사용한다</span>
+<span class="kw">def</span> <span class="fn">daily_temperatures</span>(temps):
+    n = len(temps)
+    answer = [0] * n            <span class="cm"># 기본값 0: "더 따뜻한 날이 오지 않음"</span>
+    stack = LinkedStack()       <span class="cm"># 아직 답을 못 찾은 날짜의 인덱스 (아래→위로 온도가 감소하는 모노토닉 스택)</span>
+
+    <span class="kw">for</span> today, temp <span class="kw">in</span> enumerate(temps):
+        <span class="cm"># 오늘 온도가 스택 top 날짜의 온도보다 높다면, top 날짜의 '기다림'이 끝난 것</span>
+        <span class="kw">while</span> <span class="kw">not</span> stack.is_empty() <span class="kw">and</span> temps[stack.peek()] &lt; temp:
+            waiting_day = stack.pop()                  <span class="cm"># 정답을 찾은 날짜를 꺼낸다</span>
+            answer[waiting_day] = today - waiting_day  <span class="cm"># 며칠을 기다렸는지 기록</span>
+        stack.push(today)                              <span class="cm"># 오늘은 아직 정답을 모르므로 push</span>
+
+    <span class="kw">return</span> answer
+
+
+<span class="cm"># [22,23,24,20,18,21,25,22] -> [1,1,4,2,1,1,0,0]</span>
+print(daily_temperatures([22, 23, 24, 20, 18, 21, 25, 22]))</code></pre>
+
+  <h3>큐 예제 — 라운드 로빈(Round-Robin) CPU 스케줄링 시뮬레이션</h3>
+  <p>여러 프로세스가 CPU 하나를 나눠 써야 할 때, 각 프로세스에 정해진 시간(quantum)만 주고 끝나지 않으면 줄 맨 뒤로 보내는 방식이다. "먼저 온 순서대로 실행하고, 끝나지 않으면 다시 줄을 선다"는 규칙 자체가 FIFO 큐 그대로다 — 03절에서 만든 <code class="mono">LinkedQueue</code>가 정확히 이 역할을 한다.</p>
+  <div class="card algo">
+    <span class="eyebrow">알고리즘 — 라운드 로빈</span>
+    <ul class="goal-list">
+      <li><span class="mark">1</span>모든 프로세스를 (이름, 남은 실행시간)으로 큐에 넣는다.</li>
+      <li><span class="mark">2</span>큐가 빌 때까지 반복한다.</li>
+      <li><span class="mark">3</span>큐 맨 앞 프로세스를 꺼낸다.</li>
+      <li><span class="mark">4</span>quantum과 남은 실행시간 중 작은 값만큼만 실행하고, 남은 실행시간에서 뺀다.</li>
+      <li><span class="mark">5</span>남은 실행시간이 0보다 크면 큐 맨 뒤에 다시 넣는다.</li>
+      <li><span class="mark">6</span>0이 되면 큐에 다시 넣지 않고 종료 처리한다.</li>
+    </ul>
+  </div>
+<pre><code><span class="cm"># 03절에서 만든 LinkedQueue를 그대로 사용한다</span>
+<span class="kw">def</span> <span class="fn">round_robin</span>(processes, quantum):
+    <span class="str">"""processes: [(이름, 필요시간), ...]  quantum: 한 번에 줄 수 있는 최대 실행시간"""</span>
+    queue = LinkedQueue()
+    <span class="kw">for</span> p <span class="kw">in</span> processes:
+        queue.enqueue(p)                     <span class="cm"># 도착한 순서대로 큐에 적재 (FIFO)</span>
+    timeline = []                            <span class="cm"># (완료 시각, 이름, 이번에 실행한 시간) 로그</span>
+    now = 0
+
+    <span class="kw">while</span> <span class="kw">not</span> queue.is_empty():              <span class="cm"># 큐가 빌 때까지 = 모든 프로세스 종료까지</span>
+        name, remaining = queue.dequeue()    <span class="cm"># 맨 앞 프로세스를 O(1)로 꺼낸다</span>
+        run_time = min(quantum, remaining)   <span class="cm"># 할당량과 남은 시간 중 작은 값만큼만 실행</span>
+        now += run_time
+        timeline.append((now, name, run_time))
+        remaining -= run_time
+
+        <span class="kw">if</span> remaining &gt; 0:
+            queue.enqueue((name, remaining))  <span class="cm"># 아직 안 끝났으면 줄 맨 뒤로 다시 O(1)</span>
+
+    <span class="kw">return</span> timeline
+
+
+<span class="cm"># A, B, C가 각각 5, 3, 7의 실행시간 필요, quantum=2</span>
+<span class="kw">for</span> record <span class="kw">in</span> round_robin([(<span class="str">'A'</span>, 5), (<span class="str">'B'</span>, 3), (<span class="str">'C'</span>, 7)], quantum=2):
+    print(record)</code></pre>
+</section>
+
+<section id="advanced" class="rail">
+  <h2><span class="num">05</span> 심화 주제</h2>
+  <p>여기서는 지금까지 배운 스택·큐를 한 단계 더 밀어붙인다. 두 주제 모두 "겉으로 보이는 한계를, 관점을 바꿔 뛰어넘는다"는 공통점이 있다.</p>
+
+  <h3>심화 ① 환형 큐 — 배열로도 O(1) 큐를 만든다</h3>
+  <p>02절에서 "배열로 큐를 만들면 <code class="mono">pop(0)</code> 때문에 O(N)"이라고 했다. 그래서 연결 리스트나 deque를 썼다. 그런데 <b>배열을 포기하지 않고도</b> 이 문제를 푸는 방법이 있다. 비밀은 발상의 전환이다 — 앞에서 요소가 빠져 생긴 빈 칸을, 뒤에서 넘어온 새 요소가 <b>재사용</b>하게 하는 것이다. 배열의 끝과 처음을 이어 붙여 <b>원(ring)</b>처럼 빙 돌려 쓴다고 해서 환형 큐라 부른다.</p>
+  <p>핵심 도구는 두 개의 인덱스와 나머지 연산(<code class="mono">%</code>)이다. <b>front</b>는 꺼낼 위치, <b>rear</b>는 넣을 위치를 가리키고, 끝에 도달하면 <code class="mono">(위치 + 1) % 용량</code>으로 다시 0번 칸으로 돌아온다.</p>
+
+  <div class="builder">
+    <div class="ring-legend">
+      <span><span class="chip" style="border-color:var(--green);"></span>채워진 칸</span>
+      <span><span class="chip" style="border-color:var(--amber);"></span>front (꺼낼 자리)</span>
+      <span><span class="chip" style="border-color:var(--red);"></span>rear (넣을 자리)</span>
+    </div>
+    <div class="stepper"><div class="step-dots"></div>
+
+      <div class="step">
+        <p class="steel" style="margin:.2rem 0 0;"><b>A, B, C, D를 차례로 enqueue</b></p>
+        <div class="ring">
+        <div class="ring-cell filled is-front" style="left:115px; top:27px;"><span class="slot">[0]</span>A</div>
+        <div class="ring-cell filled" style="left:191px; top:71px;"><span class="slot">[1]</span>B</div>
+        <div class="ring-cell filled" style="left:191px; top:159px;"><span class="slot">[2]</span>C</div>
+        <div class="ring-cell filled" style="left:115px; top:203px;"><span class="slot">[3]</span>D</div>
+        <div class="ring-cell is-rear" style="left:39px; top:159px;"><span class="slot">[4]</span></div>
+        <div class="ring-cell" style="left:39px; top:71px;"><span class="slot">[5]</span></div>
+        </div>
+        <p style="margin:.2rem 0 0;">front는 0번 칸, 다음에 넣을 rear 위치는 4번 칸. 아직 배열 순서대로 채워진다.</p>
+      </div>
+
+      <div class="step">
+        <p class="steel" style="margin:.2rem 0 0;"><b>dequeue를 두 번 → A, B 제거</b></p>
+        <div class="ring">
+        <div class="ring-cell" style="left:115px; top:27px;"><span class="slot">[0]</span></div>
+        <div class="ring-cell" style="left:191px; top:71px;"><span class="slot">[1]</span></div>
+        <div class="ring-cell filled is-front" style="left:191px; top:159px;"><span class="slot">[2]</span>C</div>
+        <div class="ring-cell filled" style="left:115px; top:203px;"><span class="slot">[3]</span>D</div>
+        <div class="ring-cell is-rear" style="left:39px; top:159px;"><span class="slot">[4]</span></div>
+        <div class="ring-cell" style="left:39px; top:71px;"><span class="slot">[5]</span></div>
+        </div>
+        <p style="margin:.2rem 0 0;">front가 0→2로 이동. 앞의 0·1번 칸이 비었지만 <b>요소를 당기지 않는다</b>. front만 움직일 뿐이라 O(1).</p>
+      </div>
+
+      <div class="step">
+        <p class="steel" style="margin:.2rem 0 0;"><b>E, F, G를 enqueue → rear가 끝을 넘어 앞으로!</b></p>
+        <div class="ring">
+        <div class="ring-cell filled" style="left:115px; top:27px;"><span class="slot">[0]</span>G</div>
+        <div class="ring-cell is-rear" style="left:191px; top:71px;"><span class="slot">[1]</span></div>
+        <div class="ring-cell filled is-front" style="left:191px; top:159px;"><span class="slot">[2]</span>C</div>
+        <div class="ring-cell filled" style="left:115px; top:203px;"><span class="slot">[3]</span>D</div>
+        <div class="ring-cell filled" style="left:39px; top:159px;"><span class="slot">[4]</span>E</div>
+        <div class="ring-cell filled" style="left:39px; top:71px;"><span class="slot">[5]</span>F</div>
+        </div>
+        <p style="margin:.2rem 0 0;">rear가 4→5까지 간 뒤, 5의 다음은 <b>(5+1) % 6 = 0</b>. 비어 있던 0번 칸을 <b>재사용</b>한다. 이것이 환형 큐의 핵심 — 배열을 원처럼 빙 돌려 쓴다.</p>
+      </div>
+
+    </div>
+    <div class="btn-row"><button class="step-prev">← 이전</button><button class="step-next primary">다음 →</button></div>
+  </div>
+
+  <div class="card algo">
+    <span class="eyebrow">알고리즘 — enqueue(value)</span>
+    <ul class="goal-list">
+      <li><span class="mark">1</span>큐가 가득 찼으면(size == 용량) 더 넣을 수 없으므로 예외를 발생시킨다.</li>
+      <li><span class="mark">2</span>넣을 위치를 계산한다: rear = (front + size) % 용량.</li>
+      <li><span class="mark">3</span>그 자리에 값을 저장하고 size를 1 늘린다.</li>
+    </ul>
+  </div>
+  <div class="card algo">
+    <span class="eyebrow">알고리즘 — dequeue()</span>
+    <ul class="goal-list">
+      <li><span class="mark">1</span>큐가 비었으면(size == 0) 예외를 발생시킨다.</li>
+      <li><span class="mark">2</span>front 위치의 값을 꺼내 임시로 저장한다.</li>
+      <li><span class="mark">3</span>front를 한 칸 전진시킨다: front = (front + 1) % 용량. 끝에서 자동으로 0번으로 돌아온다.</li>
+      <li><span class="mark">4</span>size를 1 줄이고 저장한 값을 반환한다.</li>
+    </ul>
+  </div>
+
+<pre><code><span class="kw">class</span> <span class="fn">CircularQueue</span>:
+    <span class="str">"""고정 크기 배열을 원처럼 돌려 쓰는 큐. 양쪽 끝 모두 O(1)."""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, capacity):
+        self.capacity = capacity
+        self.data = [<span class="kw">None</span>] * capacity  <span class="cm"># 크기가 고정된 배열</span>
+        self.front = 0                  <span class="cm"># 다음에 꺼낼 위치</span>
+        self.size = 0                   <span class="cm"># 현재 들어있는 개수 (front+size로 rear를 계산)</span>
+
+    <span class="kw">def</span> <span class="fn">is_empty</span>(self):
+        <span class="kw">return</span> self.size == 0
+
+    <span class="kw">def</span> <span class="fn">is_full</span>(self):
+        <span class="kw">return</span> self.size == self.capacity
+
+    <span class="kw">def</span> <span class="fn">enqueue</span>(self, value):
+        <span class="kw">if</span> self.is_full():
+            <span class="kw">raise</span> OverflowError(<span class="str">'queue is full'</span>)
+        rear = (self.front + self.size) % self.capacity  <span class="cm"># 넣을 자리 = front에서 size칸 뒤 (원을 넘으면 앞으로)</span>
+        self.data[rear] = value
+        self.size += 1
+
+    <span class="kw">def</span> <span class="fn">dequeue</span>(self):
+        <span class="kw">if</span> self.is_empty():
+            <span class="kw">raise</span> IndexError(<span class="str">'dequeue from empty queue'</span>)
+        value = self.data[self.front]
+        self.data[self.front] = <span class="kw">None</span>              <span class="cm"># 꺼낸 칸을 비워둔다 (참조 정리)</span>
+        self.front = (self.front + 1) % self.capacity  <span class="cm"># front를 한 칸 전진 — 끝이면 0으로 wrap</span>
+        self.size -= 1
+        <span class="kw">return</span> value
+
+
+<span class="cm"># 용량 3짜리 큐를 돌려 쓰기</span>
+cq = CircularQueue(3)
+cq.enqueue(<span class="str">'A'</span>); cq.enqueue(<span class="str">'B'</span>); cq.enqueue(<span class="str">'C'</span>)  <span class="cm"># 가득 참</span>
+print(cq.dequeue())     <span class="cm"># A (front 이동)</span>
+cq.enqueue(<span class="str">'D'</span>)         <span class="cm"># 비워진 앞 칸을 재사용</span>
+print(cq.dequeue())     <span class="cm"># B</span></code></pre>
+
+  <div class="card" style="border-left:3px solid var(--amber);">
+    <span class="eyebrow">왜 size를 따로 셀까?</span>
+    <p style="margin:.5rem 0 0;">front와 rear 인덱스만으로 상태를 관리하면, <b>"큐가 가득 참"과 "큐가 비어 있음"이 똑같이 front == rear로 나타나는</b> 유명한 문제가 생긴다. 이를 피하려고 흔히 "한 칸을 비워두거나" size 변수를 따로 둔다. 여기서는 이해하기 쉽도록 size를 세는 방식을 택했다.</p>
+  </div>
+
+  <h4 style="margin-top:2rem;">실무에서 환형 큐는 어디에 쓰일까 — 생산자·소비자 버퍼</h4>
+  <p>환형 큐의 대표 무대는 <b>데이터를 만드는 쪽(생산자)과 쓰는 쪽(소비자)의 속도가 다를 때</b>다. 이때 둘 사이에 고정 크기 환형 큐를 두면, 속도 차이를 <b>버퍼가 흡수</b>해준다. 이 버퍼를 특히 <b>링 버퍼(ring buffer)</b>라 부른다. 두 장면으로 보자.</p>
+
+  <div class="card-row">
+    <div class="card" style="border-left:3px solid var(--green);">
+      <span class="eyebrow" style="color:var(--green);">장면 1 · 음악 재생</span>
+      <div class="flow">
+        <div class="flow-node producer"><span class="role">PRODUCER</span>디코더<br><span style="font-size:.72rem; color:var(--steel);">파일→소리조각</span></div>
+        <span class="flow-arrow">→</span>
+        <div>
+          <div class="flow-buf">
+            <div class="slot full"></div><div class="slot full"></div><div class="slot full"></div><div class="slot full"></div><div class="slot"></div><div class="slot"></div>
+          </div>
+          <div class="flow-cap">환형 큐 (버퍼)</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node consumer"><span class="role">CONSUMER</span>사운드카드<br><span style="font-size:.72rem; color:var(--steel);">일정 속도 재생</span></div>
+      </div>
+      <p style="margin:.6rem 0 0;">사운드카드는 <b>1초에 정확히 44,100개</b>의 소리 조각을 규칙적으로 소비한다. 반면 파일을 푸는 디코더는 CPU가 바쁘면 잠깐 느려지고 한가하면 몰아서 빠르게 만든다. 디코더가 미리 버퍼에 조금 <b>쌓아두면(enqueue)</b>, 잠깐 느려져도 사운드카드는 버퍼에서 <b>끊김 없이 꺼내(dequeue)</b> 재생한다. 버퍼가 텅 비는 순간이 바로 우리가 겪는 <b>음악 끊김(버퍼 언더런)</b>이다.</p>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--green);">
+      <span class="eyebrow" style="color:var(--green);">장면 2 · 영상 스트리밍</span>
+      <div class="flow">
+        <div class="flow-node producer"><span class="role">PRODUCER</span>네트워크<br><span style="font-size:.72rem; color:var(--steel);">들쭉날쭉 도착</span></div>
+        <span class="flow-arrow">→</span>
+        <div>
+          <div class="flow-buf">
+            <div class="slot full"></div><div class="slot full"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          </div>
+          <div class="flow-cap">환형 큐 (버퍼)</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node consumer"><span class="role">CONSUMER</span>플레이어<br><span style="font-size:.72rem; color:var(--steel);">30프레임/초</span></div>
+      </div>
+      <p style="margin:.6rem 0 0;">인터넷으로 오는 영상 데이터는 도착 속도가 <b>일정하지 않다</b> — 몰려오기도, 뚝 끊기기도 한다. 플레이어는 받은 프레임을 버퍼에 <b>enqueue</b>하고, 화면에는 초당 30장씩 <b>dequeue</b>해 보여준다. 재생 시작 전 잠깐 뜨는 <b>"버퍼링..."</b>이 바로 버퍼를 미리 채우는 과정이고, 네트워크가 끊겨 버퍼가 바닥나면 다시 "버퍼링"이 뜨며 멈춘다.</p>
+    </div>
+  </div>
+
+  <p>두 장면의 공통점을 보자. ① 데이터는 <b>먼저 들어온 것부터 순서대로</b> 나가야 한다(FIFO — 소리·영상의 순서가 뒤바뀌면 안 된다). ② 버퍼 크기는 메모리 낭비를 막으려 <b>고정</b>되어 있다. ③ 생산·소비가 초당 수만 번 일어나므로 넣고 빼는 연산은 반드시 <b>O(1)</b>이어야 한다. 이 세 조건을 동시에 만족하는 것이 바로 <b>환형 큐</b>다 — front·rear가 고정 배열을 빙빙 돌며, 한쪽에선 채우고 다른 쪽에선 비우는 일을 영원히 반복한다.</p>
+
+  <h3 style="margin-top:2.6rem;">심화 ② 스택 두 개로 큐 만들기</h3>
+  <p>이번엔 반대로 뒤집어 보자. LIFO인 스택만 가지고 FIFO인 큐를 만들 수 있을까? 놀랍게도 <b>스택 두 개</b>면 된다. 직관을 깨는 결과라 면접 단골 문제이기도 하다.</p>
+  <p>아이디어는 이렇다. 스택에 한 번 뒤집힌 것을 <b>한 번 더 뒤집으면 원래 순서로 돌아온다</b>. 넣을 때 쌓는 스택(<code class="mono">in</code>)과 뺄 때 쓰는 스택(<code class="mono">out</code>)을 나눈다. 꺼내야 하는데 <code class="mono">out</code>이 비어 있으면, 그때 <code class="mono">in</code>을 통째로 쏟아 <code class="mono">out</code>으로 옮긴다 — 이 과정에서 순서가 한 번 더 뒤집혀 <b>가장 먼저 넣은 것이 out의 맨 위로</b> 올라온다.</p>
+
+  <div class="card algo">
+    <span class="eyebrow">알고리즘 — enqueue(value)</span>
+    <ul class="goal-list">
+      <li><span class="mark">1</span>무조건 in 스택에 push한다. (항상 O(1))</li>
+    </ul>
+  </div>
+  <div class="card algo">
+    <span class="eyebrow">알고리즘 — dequeue()</span>
+    <ul class="goal-list">
+      <li><span class="mark">1</span>out 스택이 비어 있다면, in 스택이 빌 때까지 pop해서 그 값을 out에 push한다(통째로 옮기며 순서가 뒤집힘).</li>
+      <li><span class="mark">2</span>그래도 out이 비어 있으면 큐 전체가 빈 것이므로 예외를 발생시킨다.</li>
+      <li><span class="mark">3</span>out 스택에서 pop한 값을 반환한다 — 이것이 가장 먼저 들어온 값이다.</li>
+    </ul>
+  </div>
+
+<pre><code><span class="cm"># 스택은 파이썬 list의 append/pop으로 충분하다 (둘 다 O(1))</span>
+<span class="kw">class</span> <span class="fn">TwoStackQueue</span>:
+    <span class="str">"""LIFO 스택 두 개로 FIFO 큐를 구현한다."""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.in_stack = []    <span class="cm"># enqueue가 쌓이는 곳</span>
+        self.out_stack = []   <span class="cm"># dequeue가 꺼내 가는 곳</span>
+
+    <span class="kw">def</span> <span class="fn">enqueue</span>(self, value):
+        self.in_stack.append(value)       <span class="cm"># 그냥 쌓기만 하면 끝 — 항상 O(1)</span>
+
+    <span class="kw">def</span> <span class="fn">dequeue</span>(self):
+        <span class="kw">if</span> <span class="kw">not</span> self.out_stack:            <span class="cm"># out이 비었을 때만 옮긴다 (핵심!)</span>
+            <span class="kw">while</span> self.in_stack:
+                <span class="cm"># in에서 하나씩 꺼내 out에 쌓으면 순서가 뒤집힌다</span>
+                self.out_stack.append(self.in_stack.pop())
+        <span class="kw">if</span> <span class="kw">not</span> self.out_stack:            <span class="cm"># 옮겼는데도 비었으면 큐가 완전히 빈 것</span>
+            <span class="kw">raise</span> IndexError(<span class="str">'dequeue from empty queue'</span>)
+        <span class="kw">return</span> self.out_stack.pop()        <span class="cm"># out의 top = 가장 먼저 넣은 값</span>
+
+
+q = TwoStackQueue()
+q.enqueue(1); q.enqueue(2); q.enqueue(3)
+print(q.dequeue())   <span class="cm"># 1  (여기서 in[1,2,3] → out[3,2,1]로 옮겨짐)</span>
+q.enqueue(4)         <span class="cm"># in[4]에 쌓임, out[3,2]는 그대로</span>
+print(q.dequeue())   <span class="cm"># 2  (out에서 바로 꺼냄, 옮기지 않음)</span>
+print(q.dequeue())   <span class="cm"># 3</span>
+print(q.dequeue())   <span class="cm"># 4  (out이 비어서 다시 옮김)</span></code></pre>
+
+  <div class="card" style="border-left:3px solid var(--green);">
+    <span class="eyebrow">핵심 개념 — 상각 분석</span>
+    <p style="margin:.5rem 0 0;">dequeue 한 번이 최악의 경우 in 전체를 옮기므로 O(N)처럼 보인다. 하지만 <b>각 원소는 평생 딱 네 번</b>만 만져진다: in에 push, in에서 pop, out에 push, out에서 pop. 그래서 N번 enqueue + N번 dequeue의 총 연산량은 <b>4N에 비례</b> — 연산 하나당 평균으로 나누면 <b>상각(amortized) O(1)</b>이다. "한 번의 비싼 연산에 속지 말고 여러 번의 흐름 전체를 보라"는 것이 상각 분석의 핵심이다. 이 중요한 개념을 아래 읽기 자료에서 개념부터 차근차근 정리했다.</p>
+  </div>
+
+  <details class="reading">
+    <summary><span class="rtag">읽기 자료</span>상각 분석(amortized analysis)이란?<span class="chev">▸</span></summary>
+    <div class="reading-body">
+      <p>이번 심화 ②와 03절에서 "상각 O(1)"이라는 말이 나왔다. 프로그래밍에서 아주 자주 등장하는 중요한 개념이니, 개념부터 차근차근 정리하자.</p>
+
+      <p><b>상각 분석</b>은 "가끔 비싼 연산이 섞여 있어도, <b>여러 번의 연산을 전체로 묶어 평균 내면</b> 한 번당 비용이 싸다"는 것을 보이는 분석법이다. 여기서 상각(償却)은 원래 회계 용어로, <b>큰 비용을 여러 기간에 나눠 부담한다</b>는 뜻이다.</p>
+
+      <div class="analogy">
+        <b>비유 · 연간 구독료</b><br>
+        영상 서비스 <b>연간 이용권</b>을 1월 1일에 12만 원 한 번에 결제한다고 하자. 그날 하루만 보면 "이게 얼마야?" 싶지만, 1년 동안 100편을 본다면 <b>한 편당 1,200원</b>이다. 결제일 하루의 큰 비용에 놀라지 말고 <b>1년 전체로 나눠 보라</b>는 것 — 이것이 상각의 발상이다. 가끔 목돈이 나가도, 그 목돈이 이후 수많은 값싼 사건을 가능케 한다면 평균 비용은 낮다.
+      </div>
+
+      <h5>왜 '최악의 경우'와 다를까</h5>
+      <p>보통 알고리즘은 <b>한 번의 연산이 최악일 때 얼마나 걸리나</b>로 평가한다(worst-case). 그런데 어떤 연산은 최악이 아주 가끔만 일어나고 대부분은 값싸다. 이럴 때 "최악 = O(N)"이라고만 하면 실제 성능을 과장하게 된다. 상각 분석은 <b>그 비싼 경우가 얼마나 드물게 일어나는지까지 계산에 넣어</b> 더 정직한 평균을 낸다.</p>
+      <p>중요한 구분: 상각 분석은 <b>운 좋은 평균적 입력을 가정하는 게 아니다</b>. 어떤 입력이 오든 <b>연속된 N번의 총비용이 O(N)임을 보장</b>한다. 그래서 "평균 시간 복잡도(average-case)"와는 다르다 — 이쪽은 확률에 기대지 않는다.</p>
+
+      <h5>대표 예제 ① — 동적 배열의 append는 왜 상각 O(1)인가</h5>
+      <p>파이썬의 list는 속을 들여다보면 <b>고정 크기 배열</b>이다. 배열은 크기가 정해져 있으므로, 정해진 칸이 꽉 찬 상태에서 또 append하려면 <b>더 큰 배열을 새로 만들어 기존 원소를 전부 옮겨 담아야</b> 한다. 이 "옮겨 담기"가 O(N)짜리 비싼 작업이고, 이를 <b>재할당(reallocation)</b>이라 부른다. 그렇다면 append는 O(N)일까? 대부분의 append는 빈 칸에 그냥 값을 넣으므로 O(1)이고, 재할당은 <b>가끔만</b> 일어난다. 이 "가끔"이 얼마나 드문지가 관건이다.</p>
+
+      <p>핵심은 <b>배열을 얼마나 키우느냐</b>다. 만약 꽉 찰 때마다 <b>한 칸씩만</b> 늘린다면 매번 재할당이 일어나 append마다 O(N) — 최악이다. 하지만 꽉 찰 때마다 용량을 <b>두 배로</b> 키우면 이야기가 완전히 달라진다. 용량이 1 → 2 → 4 → 8 → … 로 커지므로, N개를 담는 동안 재할당은 <b>약 log₂N번</b>밖에 일어나지 않는다(100만 개를 담아도 약 20번뿐이다).</p>
+
+      <div class="analogy">
+        <b>총 복사량을 더해보면 (등비수열)</b><br>
+        재할당 때마다 옮겨 담는 원소 수는 1, 2, 4, 8, …, N개다. 이걸 전부 더하면<br>
+        <span class="mono">1 + 2 + 4 + 8 + ⋯ + N = 2N − 1 ≈ 2N</span><br>
+        즉 N개를 append하는 <b>전 과정에서 옮겨 담은 원소는 다 합쳐도 약 2N개</b>뿐이다. 등비수열의 합은 <b>마지막 항의 약 2배</b>라는 성질 덕분이다. 따라서 N번 append의 총비용은 값 넣기 N번 + 복사 약 2N번 = <b>약 3N</b>에 비례하고, 이를 N으로 나누면 append 한 번당 평균 <b>상각 O(1)</b>이 된다.
+      </div>
+
+      <p>한 칸씩 늘릴 때(총 복사 ≈ N²/2)와 두 배로 늘릴 때(총 복사 ≈ 2N)의 차이가 바로 상각의 힘이다. "가끔 터지는 O(N) 재할당"이 그 뒤로 두 배만큼 많은 값싼 append를 보장하기 때문에, 비싼 비용이 넓게 분산되어 평균이 O(1)로 내려앉는다. (참고: 실제 CPython은 정확히 2배가 아니라 약 1.125배씩 조금씩 키우지만, "일정 비율로 키운다"는 원리가 같으므로 결론도 상각 O(1)로 같다.)</p>
+
+      <h5>대표 예제 ② — 두 스택 큐</h5>
+      <p>심화 ②의 두 스택 큐도 정확히 같은 원리다. dequeue 한 번은 최악의 경우 in 전체를 옮겨 O(N)처럼 보인다. 하지만 각 원소는 평생 딱 네 번만 만져지므로(in push → in pop → out push → out pop), 원소 N개를 넣고 빼는 전체 연산량은 <b>4N에 비례</b>. 연산 하나당 평균으로 나누면 <b>상각 O(1)</b>이다. 여기서도 "한 번의 비싼 옮기기"가 그 뒤 여러 번의 값싼 dequeue를 보장한다.</p>
+
+      <p style="margin-top:1.1rem;">두 예의 논리는 완전히 같다 — <b>"가끔 O(N)이 터지지만, 그 비싼 연산이 그 뒤 많은 값싼 연산을 보장하므로, 전체를 나누면 O(1)"</b>. 개별 연산의 최악값에 겁먹지 말고 연산들의 흐름 전체를 보라는 것이 상각 분석의 교훈이다.</p>
+    </div>
+  </details>
+</section>
+
+<section id="activity" class="rail">
+  <h2><span class="num">06</span> 체험 활동</h2>
+  <div class="builder">
+    <p class="steel" style="margin-top:0;">이번엔 괄호 세 종류가 섞인 조금 더 복잡한 문자열 "{ ( [ ] ) [ ] }"로, 스택이 실제로 어떻게 쌓이고 줄어드는지 그림으로 직접 확인해보자. 상자가 위로 쌓일수록 최근에 push된 것이고, <span class="mark" style="color:var(--amber);">top</span> 표시가 붙은 상자가 지금 스택의 맨 위다.</p>
+    <div class="stepper"><div class="step-dots"></div>
+
+      <div class="step">
+        <p class="mono"><span class="tok-current">{</span> ( [ ] ) [ ] }</p>
+        <p>'{' → 여는 괄호이므로 스택에 push한다.</p>
+        <div class="stack-col">
+          <div class="car searching tag" data-tag="top">{</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <p class="mono">{ <span class="tok-current">(</span> [ ] ) [ ] }</p>
+        <p>'(' → 여는 괄호이므로 push한다.</p>
+        <div class="stack-col">
+          <div class="car">{</div>
+          <div class="car searching tag" data-tag="top">(</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <p class="mono">{ ( <span class="tok-current">[</span> ] ) [ ] }</p>
+        <p>'[' → 여는 괄호이므로 push한다. 여는 괄호 3개가 순서대로 쌓였다.</p>
+        <div class="stack-col">
+          <div class="car">{</div>
+          <div class="car">(</div>
+          <div class="car searching tag" data-tag="top">[</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <p class="mono">{ ( [ <span class="tok-current">]</span> ) [ ] }</p>
+        <p>']' → 닫는 괄호. top이 '['이므로 짝이 맞는다 → <span style="color:var(--red); text-decoration:line-through;">[</span> pop.</p>
+        <div class="stack-col">
+          <div class="car">{</div>
+          <div class="car tag" data-tag="top">(</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <p class="mono">{ ( [ ] <span class="tok-current">)</span> [ ] }</p>
+        <p>')' → 닫는 괄호. top이 '('이므로 짝이 맞는다 → <span style="color:var(--red); text-decoration:line-through;">(</span> pop.</p>
+        <div class="stack-col">
+          <div class="car tag" data-tag="top">{</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <p class="mono">{ ( [ ] ) <span class="tok-current">[</span> ] }</p>
+        <p>'[' → 여는 괄호이므로 다시 push한다.</p>
+        <div class="stack-col">
+          <div class="car">{</div>
+          <div class="car searching tag" data-tag="top">[</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <p class="mono">{ ( [ ] ) [ <span class="tok-current">]</span> }</p>
+        <p>']' → 닫는 괄호. top이 '['이므로 짝이 맞는다 → <span style="color:var(--red); text-decoration:line-through;">[</span> pop.</p>
+        <div class="stack-col">
+          <div class="car tag" data-tag="top">{</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <p class="mono">{ ( [ ] ) [ ] <span class="tok-current">}</span></p>
+        <p>'}' → 닫는 괄호. top이 '{'이므로 짝이 맞는다 → <span style="color:var(--red); text-decoration:line-through;">{</span> pop. 모든 토큰을 처리했고 스택이 비었다 → <b style="color:var(--amber)">유효한 괄호!</b></p>
+        <p class="steel mono" style="font-size:.8rem;">스택 비어있음</p>
+      </div>
+
+    </div>
+    <div class="btn-row"><button class="step-prev">← 이전</button><button class="step-next primary">다음 →</button></div>
+  </div>
+
+  <div class="card" style="margin-top:1.6rem; border-left:3px solid var(--red);">
+    <span class="eyebrow" style="color:var(--red);">만약 순서가 어긋나면?</span>
+    <p class="mono" style="margin:.6rem 0;">{ ( [ <span style="color:var(--red); font-weight:700; text-decoration:underline;">)</span> ] }</p>
+    <p style="margin:0;">여기까지 오면 스택은 <span class="mono">{, (, [</span> (top은 '[') 상태다. 그런데 지금 문자는 ')'다. top인 '['와 종류가 다르므로 <b style="color:var(--red);">stack.pop() != pairs[ch] → 즉시 False</b>. 괄호의 <b>개수</b>가 맞아도 <b>순서</b>가 어긋나면 무효라는 것을, "가장 최근 것부터" 비교하는 스택이 정확히 잡아낸다.</p>
+  </div>
+
+  <h3 style="margin-top:2.4rem;">스택일까, 큐일까?</h3>
+  <p class="steel" style="margin-top:0;">아래 열 가지 상황에서 어떤 자료구조가 어울리는지 직접 판단해보자. 핵심 질문은 하나다 — <b>"가장 최근에 들어온 것"부터 처리해야 하는가(스택), "가장 먼저 들어온 것"부터 처리해야 하는가(큐)?</b> 버튼을 누르면 즉시 근거가 나온다.</p>
+  <div id="judge">
+    <div class="judge-head">
+      <span class="board-tag" style="margin-bottom:0;"><span class="dot"></span>10문항 · 스스로 판단</span>
+      <span class="score-pill" id="judgeScore">0 / 10</span>
+    </div>
+
+    <div class="judge-item" data-answer="stack">
+      <p class="scenario"><span class="qn">01</span>웹 브라우저에서 '뒤로 가기'를 누르면 <b>바로 직전에 보던 페이지</b>로 돌아간다.</p>
+      <div class="judge-btns">
+        <button data-pick="stack">스택<span class="sub">LIFO</span></button>
+        <button data-pick="queue">큐<span class="sub">FIFO</span></button>
+      </div>
+      <div class="judge-why"><b>스택.</b> 가장 최근에 방문한 페이지가 가장 먼저 튀어나와야 하므로 LIFO다. 방문 기록을 push하고, 뒤로 가기는 pop이다.</div>
+    </div>
+
+    <div class="judge-item" data-answer="queue">
+      <p class="scenario"><span class="qn">02</span>은행 창구에서 <b>번호표를 뽑은 순서대로</b> 손님을 부른다.</p>
+      <div class="judge-btns">
+        <button data-pick="stack">스택<span class="sub">LIFO</span></button>
+        <button data-pick="queue">큐<span class="sub">FIFO</span></button>
+      </div>
+      <div class="judge-why"><b>큐.</b> 먼저 온 사람이 먼저 처리되어야 공정하다. 전형적인 FIFO 대기열이다.</div>
+    </div>
+
+    <div class="judge-item" data-answer="stack">
+      <p class="scenario"><span class="qn">03</span>문서 편집기에서 Ctrl+Z를 누르면 <b>가장 마지막에 한 작업</b>부터 취소된다.</p>
+      <div class="judge-btns">
+        <button data-pick="stack">스택<span class="sub">LIFO</span></button>
+        <button data-pick="queue">큐<span class="sub">FIFO</span></button>
+      </div>
+      <div class="judge-why"><b>스택.</b> 되돌리기(Undo)는 최근 작업부터 거꾸로 풀어야 하므로 LIFO다.</div>
+    </div>
+
+    <div class="judge-item" data-answer="queue">
+      <p class="scenario"><span class="qn">04</span>프린터에 여러 문서를 보내면 <b>보낸 순서대로</b> 한 장씩 인쇄된다.</p>
+      <div class="judge-btns">
+        <button data-pick="stack">스택<span class="sub">LIFO</span></button>
+        <button data-pick="queue">큐<span class="sub">FIFO</span></button>
+      </div>
+      <div class="judge-why"><b>큐.</b> 인쇄 대기열(print queue)은 먼저 요청한 문서를 먼저 출력하는 FIFO다.</div>
+    </div>
+
+    <div class="judge-item" data-answer="stack">
+      <p class="scenario"><span class="qn">05</span>함수 A가 함수 B를 부르고 B가 C를 부를 때, <b>가장 나중에 불린 C</b>가 가장 먼저 끝나고 자기를 부른 함수로 돌아간다.</p>
+      <div class="judge-btns">
+        <button data-pick="stack">스택<span class="sub">LIFO</span></button>
+        <button data-pick="queue">큐<span class="sub">FIFO</span></button>
+      </div>
+      <div class="judge-why"><b>스택.</b> 함수 호출 스택(call stack)이 바로 이것이다. 가장 나중에 호출된 함수가 가장 먼저 반환된다.</div>
+    </div>
+
+    <div class="judge-item" data-answer="queue">
+      <p class="scenario"><span class="qn">06</span>온라인 게임 매칭에서 <b>먼저 대기 버튼을 누른 사람</b>부터 순서대로 방에 배정된다.</p>
+      <div class="judge-btns">
+        <button data-pick="stack">스택<span class="sub">LIFO</span></button>
+        <button data-pick="queue">큐<span class="sub">FIFO</span></button>
+      </div>
+      <div class="judge-why"><b>큐.</b> 대기한 순서대로 공정하게 배정하므로 FIFO다.</div>
+    </div>
+
+    <div class="judge-item" data-answer="stack">
+      <p class="scenario"><span class="qn">07</span>수식 <span class="mono">3 4 + 2 *</span> 를 계산할 때, 연산자를 만나면 <b>가장 최근에 나온 두 값</b>을 꺼내 계산한다.</p>
+      <div class="judge-btns">
+        <button data-pick="stack">스택<span class="sub">LIFO</span></button>
+        <button data-pick="queue">큐<span class="sub">FIFO</span></button>
+      </div>
+      <div class="judge-why"><b>스택.</b> 04절의 후위 표기법 계산기가 바로 이 방식이다. 최근 피연산자부터 꺼내므로 LIFO다.</div>
+    </div>
+
+    <div class="judge-item" data-answer="queue">
+      <p class="scenario"><span class="qn">08</span>CPU가 여러 프로세스에 <b>도착한 순서대로</b> 시간을 나눠 주고, 안 끝나면 줄 맨 뒤로 보낸다.</p>
+      <div class="judge-btns">
+        <button data-pick="stack">스택<span class="sub">LIFO</span></button>
+        <button data-pick="queue">큐<span class="sub">FIFO</span></button>
+      </div>
+      <div class="judge-why"><b>큐.</b> 04절의 라운드 로빈 스케줄링이다. 먼저 온 프로세스부터 처리하고 맨 뒤에 다시 넣으므로 FIFO다.</div>
+    </div>
+
+    <div class="judge-item" data-answer="stack">
+      <p class="scenario"><span class="qn">09</span>HTML 태그 <span class="mono">&lt;div&gt;&lt;p&gt;...&lt;/p&gt;&lt;/div&gt;</span> 가 올바르게 여닫혔는지 검사한다. <b>가장 최근에 연 태그</b>가 가장 먼저 닫혀야 한다.</p>
+      <div class="judge-btns">
+        <button data-pick="stack">스택<span class="sub">LIFO</span></button>
+        <button data-pick="queue">큐<span class="sub">FIFO</span></button>
+      </div>
+      <div class="judge-why"><b>스택.</b> 괄호 짝 검사와 완전히 같은 원리다. 여는 태그를 push, 닫는 태그에서 top과 비교하며 pop한다.</div>
+    </div>
+
+    <div class="judge-item" data-answer="queue">
+      <p class="scenario"><span class="qn">10</span>미로에서 출발점과 가까운 칸부터 <b>차례로 넓게 퍼뜨리며</b> 탐색한다(너비 우선 탐색, BFS).</p>
+      <div class="judge-btns">
+        <button data-pick="stack">스택<span class="sub">LIFO</span></button>
+        <button data-pick="queue">큐<span class="sub">FIFO</span></button>
+      </div>
+      <div class="judge-why"><b>큐.</b> BFS는 먼저 발견한 칸부터 순서대로 방문해야 하므로 큐를 쓴다. (참고: 반대로 깊이 우선 탐색 DFS는 스택을 쓴다 — 같은 미로도 어떤 구조를 쓰느냐로 탐색 순서가 달라진다.)</div>
+    </div>
+  </div>
+</section>
+
+<section id="practice" class="rail">
+  <h2><span class="num">07</span> 실습</h2>
+  <p>지금까지 배운 내용을 빈칸을 채우며 직접 완성해보자. 각 빈칸을 채운 뒤 "빈칸 확인하기"를 누르면 즉시 채점된다.</p>
+
+  <h3>실습 1 — 괄호 검사와 큐 처리</h3>
+  <p class="steel" style="margin-top:0;">03절에서 만든 <code class="mono">LinkedStack</code>·<code class="mono">LinkedQueue</code>를 사용한다.</p>
+  <div class="fill-wrap">
+<pre><code><span class="cm"># 03절에서 만든 LinkedStack, LinkedQueue를 사용한다</span>
+<span class="kw">def</span> <span class="fn">is_valid</span>(s):
+    stack = LinkedStack()
+    pairs = {<span class="str">')'</span>: <span class="str">'('</span>, <span class="str">']'</span>: <span class="str">'['</span>, <span class="str">'}'</span>: <span class="str">'{'</span>}
+    <span class="kw">for</span> ch <span class="kw">in</span> s:
+        <span class="kw">if</span> ch <span class="kw">in</span> <span class="str">'([{'</span>:
+            stack.<input class="blank mono" data-answer="push(ch)" placeholder="① ?">
+        <span class="kw">else</span>:
+            <span class="kw">if</span> stack.is_empty() <span class="kw">or</span> stack.pop() != pairs[ch]:
+                <span class="kw">return</span> <span class="kw">False</span>
+    <span class="kw">return</span> <input class="blank mono" data-answer="stack.is_empty()" placeholder="② ?">
+
+q = LinkedQueue()
+q.<input class="blank mono" data-answer="enqueue" placeholder="③ ?">(<span class="str">'손님1'</span>)   <span class="cm"># 줄 뒤에 추가 O(1)</span>
+q.<input class="blank mono" data-answer="dequeue" placeholder="④ ?">()  <span class="cm"># 줄 앞에서 처리 O(1)</span></code></pre>
+    <div class="fill-actions"><button class="primary check-fill">빈칸 확인하기</button><button class="show-fill">정답 보기</button></div>
+    <div class="q-feedback"></div>
+    <div class="reveal"><b>① push(ch)</b> — 여는 괄호는 스택에 쌓는다.<br><b>② stack.is_empty()</b> — 끝까지 처리 후 스택이 비어야 완전히 짝이 맞은 것.<br><b>③ enqueue</b> — 큐의 뒤에 O(1)로 넣는다.<br><b>④ dequeue</b> — 큐의 앞에서 O(1)로 꺼낸다.</div>
+  </div>
+
+  <h3 style="margin-top:2.4rem;">실습 2 — LinkedStack 직접 구현</h3>
+  <p class="steel" style="margin-top:0;">03절의 스택 구현을 되짚어보자. head 포인터 하나만 조작해 push/pop을 완성한다.</p>
+  <div class="fill-wrap">
+<pre><code><span class="kw">class</span> <span class="fn">LinkedStack</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.head = <span class="kw">None</span>
+        self._size = 0
+
+    <span class="kw">def</span> <span class="fn">push</span>(self, data):
+        new_node = Node(data)
+        new_node.next = <input class="blank mono" data-answer="self.head" placeholder="① ?">   <span class="cm"># 새 노드가 기존 head를 가리킴</span>
+        self.head = <input class="blank mono" data-answer="new_node" placeholder="② ?">      <span class="cm"># head를 새 노드로 교체</span>
+        self._size += 1
+
+    <span class="kw">def</span> <span class="fn">pop</span>(self):
+        <span class="kw">if</span> self.head <span class="kw">is</span> <span class="kw">None</span>:
+            <span class="kw">raise</span> IndexError(<span class="str">'pop from empty stack'</span>)
+        popped = self.head
+        self.head = <input class="blank mono" data-answer="self.head.next" placeholder="③ ?">  <span class="cm"># head를 한 칸 옮겨 기존 head 분리</span>
+        self._size -= 1
+        <span class="kw">return</span> popped.data</code></pre>
+    <div class="fill-actions"><button class="primary check-fill">빈칸 확인하기</button><button class="show-fill">정답 보기</button></div>
+    <div class="q-feedback"></div>
+    <div class="reveal"><b>① self.head</b> — 새 노드의 next가 현재 top(head)을 가리켜야 한다.<br><b>② new_node</b> — 그다음 head 자체를 새 노드로 바꾼다. (①②의 순서를 바꾸면 head를 잃어버린다!)<br><b>③ self.head.next</b> — 두 번째 노드가 새로운 head가 된다.</div>
+  </div>
+
+  <h3 style="margin-top:2.4rem;">실습 3 — 후위 표기법 계산기</h3>
+  <p class="steel" style="margin-top:0;">04절의 계산기를 다시 완성해보자. 연산자를 만나면 스택에서 <b>두 번</b> 꺼낸다는 점이 핵심이다.</p>
+  <div class="fill-wrap">
+<pre><code><span class="kw">def</span> <span class="fn">eval_postfix</span>(expression):
+    stack = []
+    ops = {<span class="str">'+'</span>: <span class="kw">lambda</span> a, b: a + b, <span class="str">'-'</span>: <span class="kw">lambda</span> a, b: a - b,
+           <span class="str">'*'</span>: <span class="kw">lambda</span> a, b: a * b, <span class="str">'/'</span>: <span class="kw">lambda</span> a, b: a / b}
+    <span class="kw">for</span> token <span class="kw">in</span> expression.split():
+        <span class="kw">if</span> token <span class="kw">in</span> ops:
+            b = <input class="blank mono" data-answer="stack.pop()" placeholder="① ?">    <span class="cm"># 나중에 push된 값 = 오른쪽 피연산자</span>
+            a = stack.pop()                <span class="cm"># 먼저 push된 값 = 왼쪽 피연산자</span>
+            stack.append(ops[token](<input class="blank mono" data-answer="a, b" placeholder="② ?">))  <span class="cm"># a, b 순서 주의!</span>
+        <span class="kw">else</span>:
+            stack.append(<input class="blank mono" data-answer="float(token)" placeholder="③ ?">)  <span class="cm"># 숫자로 변환해 push</span>
+    <span class="kw">return</span> stack.pop()
+
+<span class="cm"># "5 1 2 + 4 * + 3 -" -> 5 + (1+2)*4 - 3 = 14.0</span>
+print(eval_postfix(<span class="str">"5 1 2 + 4 * + 3 -"</span>))</code></pre>
+    <div class="fill-actions"><button class="primary check-fill">빈칸 확인하기</button><button class="show-fill">정답 보기</button></div>
+    <div class="q-feedback"></div>
+    <div class="reveal"><b>① stack.pop()</b> — 나중에 쌓인 값이 먼저 나오므로 이것이 오른쪽 항 b다.<br><b>② a, b</b> — 뺄셈·나눗셈은 순서가 중요하다. b를 먼저 꺼냈어도 연산은 <span class="mono">op(a, b)</span> 순서여야 한다.<br><b>③ float(token)</b> — 문자열 토큰을 실수로 바꿔 스택에 넣는다.</div>
+  </div>
+
+  <h3 style="margin-top:2.4rem;">실습 4 — 환형 큐의 모듈러 연산</h3>
+  <p class="steel" style="margin-top:0;">05절 심화의 환형 큐다. 배열을 원처럼 돌려 쓰는 핵심은 나머지 연산(<code class="mono">%</code>)에 있다.</p>
+  <div class="fill-wrap">
+<pre><code><span class="kw">class</span> <span class="fn">CircularQueue</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, capacity):
+        self.capacity = capacity
+        self.data = [<span class="kw">None</span>] * capacity
+        self.front = 0
+        self.size = 0
+
+    <span class="kw">def</span> <span class="fn">enqueue</span>(self, value):
+        <span class="kw">if</span> self.size == self.capacity:
+            <span class="kw">raise</span> OverflowError(<span class="str">'queue is full'</span>)
+        rear = <input class="blank mono" data-answer="(self.front + self.size) % self.capacity" placeholder="① ?">
+        self.data[rear] = value
+        self.size += 1
+
+    <span class="kw">def</span> <span class="fn">dequeue</span>(self):
+        <span class="kw">if</span> self.size == 0:
+            <span class="kw">raise</span> IndexError(<span class="str">'dequeue from empty queue'</span>)
+        value = self.data[self.front]
+        self.front = <input class="blank mono" data-answer="(self.front + 1) % self.capacity" placeholder="② ?">
+        self.size -= 1
+        <span class="kw">return</span> value</code></pre>
+    <div class="fill-actions"><button class="primary check-fill">빈칸 확인하기</button><button class="show-fill">정답 보기</button></div>
+    <div class="q-feedback"></div>
+    <div class="reveal"><b>① (self.front + self.size) % self.capacity</b> — 넣을 자리는 front에서 size칸 뒤. 배열 끝을 넘으면 % 덕분에 앞으로 돌아온다.<br><b>② (self.front + 1) % self.capacity</b> — front를 한 칸 전진. 마지막 칸이면 0번으로 되돌아온다. 이 <code class="mono">% capacity</code>가 "원처럼 돌려 쓰기"의 전부다.</div>
+  </div>
+</section>
+
+<section id="quiz" class="rail">
+  <h2><span class="num">08</span> 확인 퀴즈</h2>
+  <p>정답을 클릭하면 즉시 피드백을 준다. <span class="score-pill" id="scorePill">점수: 0 / 10</span></p>
+  <div class="quiz-item"><p class="q-text">Q1. 스택(LIFO)의 대표적인 활용 예는?</p><ul class="quiz-opts"><li><button data-correct="false">매표소 대기열</button></li><li><button data-correct="true">실행 취소(Undo) 기능</button></li><li><button data-correct="false">은행 창구 순번 대기</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q2. list.pop(0)이 큐 연산으로 부적절한 이유는?</p><ul class="quiz-opts"><li><button data-correct="false">문법 오류가 나서</button></li><li><button data-correct="true">앞 요소를 모두 당겨야 해서 O(N)이라서</button></li><li><button data-correct="false">정수만 처리할 수 있어서</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q3. collections.deque가 양쪽 끝 삽입/삭제를 O(1)로 만들 수 있는 이유는?</p><ul class="quiz-opts"><li><button data-correct="true">내부적으로 이중 연결 구조를 쓰기 때문</button></li><li><button data-correct="false">항상 정렬을 유지하기 때문</button></li><li><button data-correct="false">메모리를 미리 두 배로 할당하기 때문</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q4. 괄호 짝 검사에서 스택이 필요한 이유는?</p><ul class="quiz-opts"><li><button data-correct="false">문자를 알파벳 순으로 정렬해야 해서</button></li><li><button data-correct="true">가장 최근에 연 괄호가 가장 먼저 닫혀야 하므로</button></li><li><button data-correct="false">괄호의 개수를 세기 위해서만</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q5. 연결 리스트로 <b>큐</b>를 만들 때 head뿐 아니라 tail 포인터도 두는 이유는?</p><ul class="quiz-opts"><li><button data-correct="false">큐의 크기를 세기 위해서</button></li><li><button data-correct="true">tail이 없으면 enqueue마다 끝까지 순회해야 해서 O(N)이 되므로</button></li><li><button data-correct="false">head가 None이 되는 것을 막기 위해서</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q6. 연결 리스트 큐에서 마지막 노드를 dequeue할 때 반드시 함께 해줘야 하는 일은?</p><ul class="quiz-opts"><li><button data-correct="true">tail도 None으로 비운다</button></li><li><button data-correct="false">head를 tail로 복사한다</button></li><li><button data-correct="false">전체 노드를 다시 연결한다</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q7. 후위 표기법 "6 2 / 3 -"을 계산하면?</p><ul class="quiz-opts"><li><button data-correct="true">0</button></li><li><button data-correct="false">1.5</button></li><li><button data-correct="false">6</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q8. 배열 기반 <b>환형 큐</b>에서 나머지 연산(%)이 하는 역할은?</p><ul class="quiz-opts"><li><button data-correct="false">중복된 값을 제거한다</button></li><li><button data-correct="false">큐를 자동으로 정렬한다</button></li><li><button data-correct="true">인덱스가 배열 끝을 넘으면 처음(0번)으로 되돌린다</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q9. '스택 두 개로 만든 큐'에서 dequeue가 <b>상각 O(1)</b>인 이유로 옳은 것은?</p><ul class="quiz-opts"><li><button data-correct="false">모든 dequeue가 항상 O(1)이라서</button></li><li><button data-correct="true">각 원소가 평생 정해진 횟수만 옮겨지므로, 전체 연산을 나누면 평균이 상수라서</button></li><li><button data-correct="false">out 스택을 매번 새로 만들기 때문에</button></li></ul><div class="q-feedback"></div></div><div class="quiz-item"><p class="q-text">Q10. '감소하는 모노토닉 스택'이 항상 유지하는 상태는?</p><ul class="quiz-opts"><li><button data-correct="false">스택에 홀수만 들어 있다</button></li><li><button data-correct="true">바닥에서 top으로 갈수록 값이 작아진다</button></li><li><button data-correct="false">스택 크기가 항상 일정하다</button></li></ul><div class="q-feedback"></div></div>
+</section>
+
+<section id="selfcheck" class="rail">
+  <h2><span class="num">09</span> 성취기준 자가진단</h2>
+  <p>아래 항목을 스스로 점검해보자. 체크할 때마다 진행률이 채워진다.</p>
+  <ul class="check-list" id="checklist">
+    <li><input type="checkbox"><span>LIFO와 FIFO의 차이를 예를 들어 설명할 수 있다.</span></li><li><input type="checkbox"><span>연결 리스트로 스택과 큐를 O(1)로 직접 구현할 수 있다.</span></li><li><input type="checkbox"><span>큐를 연결 리스트로 만들 때 tail 포인터가 필요한 이유를 설명할 수 있다.</span></li><li><input type="checkbox"><span>스택으로 후위 표기법 계산·괄호 검사를, 큐로 라운드 로빈 스케줄링을 구현할 수 있다.</span></li><li><input type="checkbox"><span>스택/큐 중 어떤 문제에 어떤 구조가 적합한지 스스로 판단할 수 있다.</span></li><li><input type="checkbox"><span><b>(심화)</b> 환형 큐와 '스택 두 개로 만든 큐'의 원리를 설명하고, 왜 둘 다 O(1)인지 말할 수 있다.</span></li>
+  </ul>
+  <div id="progressBar"><div id="progressFill"></div></div>
+  <p class="steel" id="progressText" style="margin-top:.6rem; font-size:.85rem;">0 / 6 완료</p>
+</section>
+
+<footer>
+  <span class="eyebrow">다음 정거장</span>
+  <div class="next">
+    <span class="eyebrow">6주차 예고</span>
+    <p style="margin:.4rem 0 0; color:var(--chalk);">해시 테이블. 수백만 개의 데이터 중 원하는 값을 단 한 번의 탐색으로 찾아내는 마법 같은 구조를 배운다. 여기까지가 1부 — 선형 자료구조를 마무리한다.</p>
+  </div>
+</footer>
+
+
+
+<script>
+// ---------- 스텝 플레이어 (범용) ----------
+(function(){
+  document.querySelectorAll('.stepper').forEach(function(wrap){
+    const steps = wrap.querySelectorAll('.step');
+    const dotWrap = wrap.querySelector('.step-dots');
+    let idx = 0;
+    if(!steps.length) return;
+    steps[0].classList.add('active');
+    if(dotWrap){
+      steps.forEach((s,i) => {
+        const d = document.createElement('button');
+        d.setAttribute('aria-label', '단계 ' + (i+1));
+        if(i===0) d.classList.add('active');
+        d.addEventListener('click', () => go(i));
+        dotWrap.appendChild(d);
+      });
+    }
+    function go(i){
+      steps[idx].classList.remove('active');
+      idx = (i + steps.length) % steps.length;
+      steps[idx].classList.add('active');
+      if(dotWrap){
+        dotWrap.querySelectorAll('button').forEach((d,j)=>d.classList.toggle('active', j===idx));
+      }
+    }
+    const container = wrap.closest('.builder') || wrap.parentElement;
+    const prev = container.querySelector('.step-prev');
+    const next = container.querySelector('.step-next');
+    if(prev) prev.addEventListener('click', () => go(idx-1));
+    if(next) next.addEventListener('click', () => go(idx+1));
+  });
+})();
+
+// ---------- 빈칸 채우기 (범용) ----------
+(function(){
+  document.querySelectorAll('.fill-wrap').forEach(function(wrap){
+    const checkBtn = wrap.querySelector('.check-fill');
+    const showBtn = wrap.querySelector('.show-fill');
+    const feedback = wrap.querySelector('.q-feedback');
+    const reveal = wrap.querySelector('.reveal');
+    if(checkBtn){
+      checkBtn.addEventListener('click', () => {
+        const blanks = wrap.querySelectorAll('.blank');
+        let correct = 0;
+        blanks.forEach(input => {
+          const ans = (input.dataset.answer || '').replace(/\s+/g,'');
+          const val = input.value.trim().replace(/\s+/g,'');
+          if(val === ans && ans.length){
+            input.style.borderColor = '#0F7A73'; input.style.color = '#8FCA8F'; correct++;
+          } else if(val.length){
+            input.style.borderColor = '#B5502E'; input.style.color = '#E0958A';
+          }
+        });
+        if(feedback) feedback.textContent = correct === blanks.length ? '모두 정답! 구조를 정확히 이해했다.' : correct + ' / ' + blanks.length + ' 정답. 다시 확인해보자.';
+      });
+    }
+    if(showBtn && reveal){
+      showBtn.addEventListener('click', () => reveal.classList.toggle('show'));
+    }
+  });
+})();
+
+// ---------- 퀴즈 (범용) ----------
+(function(){
+  let score = 0;
+  const scored = new Set();
+  document.querySelectorAll('.quiz-item').forEach((item, idx) => {
+    const buttons = item.querySelectorAll('.quiz-opts button');
+    const feedback = item.querySelector('.q-feedback');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => { b.disabled = true; });
+        const isCorrect = btn.dataset.correct === 'true';
+        btn.classList.add(isCorrect ? 'correct' : 'wrong');
+        if(!isCorrect){
+          buttons.forEach(b => { if(b.dataset.correct === 'true') b.classList.add('correct'); });
+        }
+        if(isCorrect && !scored.has(idx)){ score++; scored.add(idx); }
+        if(feedback) feedback.textContent = isCorrect ? '정답이다.' : '오답 — 초록색으로 표시된 것이 정답이다.';
+        const pill = document.getElementById('scorePill');
+        if(pill) pill.textContent = '점수: ' + score + ' / ' + document.querySelectorAll('.quiz-item').length;
+      });
+    });
+  });
+})();
+
+// ---------- 스택/큐 판단 활동 ----------
+(function(){
+  const root = document.getElementById('judge');
+  if(!root) return;
+  const items = root.querySelectorAll('.judge-item');
+  const scorePill = document.getElementById('judgeScore');
+  const answered = new Set();
+  let correct = 0;
+
+  items.forEach((item, i) => {
+    const answer = item.getAttribute('data-answer');
+    const btns = item.querySelectorAll('.judge-btns button');
+    const why = item.querySelector('.judge-why');
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if(answered.has(i)) return;      // 문항당 한 번만 채점
+        answered.add(i);
+        const pick = btn.getAttribute('data-pick');
+        const isRight = (pick === answer);
+        if(isRight) correct++;
+        // 선택한 버튼 표시
+        btn.classList.add(isRight ? 'picked-right' : 'picked-wrong');
+        // 오답이면 정답 버튼도 강조
+        if(!isRight){
+          btns.forEach(b => { if(b.getAttribute('data-pick') === answer) b.classList.add('reveal-right'); });
+        }
+        // 이후 클릭 잠금 + 근거 공개
+        btns.forEach(b => b.disabled = true);
+        why.classList.add('show');
+        // 점수 갱신
+        if(scorePill) scorePill.textContent = correct + ' / ' + items.length;
+      });
+    });
+  });
+})();
+
+
+(function(){
+  const items = document.querySelectorAll('#checklist li');
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+  function update(){
+    let checked = 0;
+    items.forEach(li => { if(li.querySelector('input').checked) checked++; });
+    if(fill) fill.style.width = (items.length ? (checked / items.length * 100) : 0) + '%';
+    if(text) text.textContent = checked + ' / ' + items.length + ' 완료';
+  }
+  items.forEach(li => {
+    const input = li.querySelector('input');
+    li.addEventListener('click', (e) => {
+      if(e.target !== input) input.checked = !input.checked;
+      li.classList.toggle('checked', input.checked);
+      update();
+    });
+  });
+  update();
+})();
+</script>
+
+</body>
+</html>
